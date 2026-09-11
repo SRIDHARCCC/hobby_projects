@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorting Visualizer - Bubble Sort & Selection Sort</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-section">
+        <div class="logo-icon">📊</div>
+        <div>
+          <h1>SortLab: Visual Algorithm Explorer</h1>
+          <p class="subtitle">Understand <strong>Bubble Sort</strong> and <strong>Selection Sort</strong> with interactive animations and step-by-step explanations</p>
+        </div>
+      </div>
+      <div class="mode-toggle-group">
+        <button id="singleModeBtn" class="mode-btn active" title="Focus on a single algorithm in depth">Single View</button>
+        <button id="compareModeBtn" class="mode-btn" title="Run both algorithms side-by-side on the exact same array">Side-by-Side Comparison</button>
+      </div>
+    </header>
+
+    <!-- Global Controls Toolbar -->
+    <div class="toolbar card">
+      <div class="toolbar-group">
+        <label for="arraySize">Array Size: <span id="sizeVal" class="badge">15</span></label>
+        <input type="range" id="arraySize" min="5" max="35" value="15">
+      </div>
+
+      <div class="toolbar-group">
+        <label for="sortSpeed">Speed: <span id="speedVal" class="badge">Medium</span></label>
+        <input type="range" id="sortSpeed" min="1" max="5" value="3">
+      </div>
+
+      <div class="toolbar-group">
+        <label for="arrayPreset">Pattern:</label>
+        <select id="arrayPreset">
+          <option value="random">Random Numbers</option>
+          <option value="reversed">Reversed (Worst Case)</option>
+          <option value="nearlySorted">Nearly Sorted</option>
+          <option value="fewUnique">Few Unique Values</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button id="newArrayBtn" class="btn btn-secondary">
+          <span class="btn-icon">🎲</span> New Array
+        </button>
+        <button id="playBtn" class="btn btn-primary">
+          <span class="btn-icon">▶</span> Start Sort
+        </button>
+        <button id="pauseBtn" class="btn btn-warning" disabled>
+          <span class="btn-icon">⏸</span> Pause
+        </button>
+        <button id="stepBtn" class="btn btn-info">
+          <span class="btn-icon">⏭</span> Step
+        </button>
+        <button id="resetBtn" class="btn btn-outline">
+          <span class="btn-icon">↺</span> Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- Color Legend -->
+    <div class="legend-bar card">
+      <span class="legend-title">Legend:</span>
+      <span class="legend-item"><span class="color-dot dot-default"></span> Unsorted</span>
+      <span class="legend-item"><span class="color-dot dot-comparing"></span> Comparing</span>
+      <span class="legend-item"><span class="color-dot dot-current-min"></span> Current Minimum (Selection)</span>
+      <span class="legend-item"><span class="color-dot dot-swapping"></span> Swapping</span>
+      <span class="legend-item"><span class="color-dot dot-sorted"></span> Sorted</span>
+    </div>
+
+    <!-- Main Visualizer Area -->
+    <main id="visualizerContainer" class="visualizer-grid single-layout">
+      <!-- Section 1: Bubble Sort (or Primary) -->
+      <section id="panel1" class="algorithm-card card">
+        <div class="algo-header">
+          <div class="algo-title-wrap">
+            <select id="algoSelect1" class="algo-dropdown">
+              <option value="bubble" selected>Bubble Sort</option>
+              <option value="selection">Selection Sort</option>
+            </select>
+            <span class="complexity-tag">Time: O(n²) | Space: O(1)</span>
+          </div>
+          <div class="metrics-row">
+            <div class="metric-pill">Comparisons: <strong id="compCount1">0</strong></div>
+            <div class="metric-pill">Swaps: <strong id="swapCount1">0</strong></div>
+            <div class="metric-pill">Status: <strong id="statusText1" class="status-ready">Ready</strong></div>
+          </div>
+        </div>
+
+        <div class="bars-viewport">
+          <div id="barsContainer1" class="bars-container"></div>
+        </div>
+
+        <div class="step-explanation card-inner">
+          <div class="explanation-header">
+            <span class="pulse-indicator"></span>
+            <strong>What's happening right now:</strong>
+          </div>
+          <p id="explanationText1">Click "Start Sort" or "Step" to begin visual step-by-step execution.</p>
+        </div>
+
+        <!-- Algorithm Concept Info Box -->
+        <details class="algo-concept" open>
+          <summary id="conceptTitle1">💡 How Bubble Sort Works</summary>
+          <div id="conceptBody1" class="concept-body">
+            <p><strong>Mechanism:</strong> Iterates through the list, comparing adjacent items <code>(A[j], A[j+1])</code>. If they are in the wrong order, it swaps them.</p>
+            <p><strong>Why "Bubble"?</strong> With each complete pass, the largest remaining unsorted element "bubbles up" to its correct final place at the end of the list.</p>
+            <div class="code-preview">
+              <pre><code>for (let i = 0; i &lt; n - 1; i++) {
+  for (let j = 0; j &lt; n - i - 1; j++) {
+    if (arr[j] &gt; arr[j + 1]) {
+      swap(arr[j], arr[j + 1]);
+    }
+  }
+}</code></pre>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 2: Selection Sort (Used in Comparison Mode) -->
+      <section id="panel2" class="algorithm-card card hidden">
+        <div class="algo-header">
+          <div class="algo-title-wrap">
+            <h2 class="algo-title-static">Selection Sort</h2>
+            <span class="complexity-tag">Time: O(n²) | Space: O(1)</span>
+          </div>
+          <div class="metrics-row">
+            <div class="metric-pill">Comparisons: <strong id="compCount2">0</strong></div>
+            <div class="metric-pill">Swaps: <strong id="swapCount2">0</strong></div>
+            <div class="metric-pill">Status: <strong id="statusText2" class="status-ready">Ready</strong></div>
+          </div>
+        </div>
+
+        <div class="bars-viewport">
+          <div id="barsContainer2" class="bars-container"></div>
+        </div>
+
+        <div class="step-explanation card-inner">
+          <div class="explanation-header">
+            <span class="pulse-indicator"></span>
+            <strong>What's happening right now:</strong>
+          </div>
+          <p id="explanationText2">Click "Start Sort" to compare Selection Sort against Bubble Sort.</p>
+        </div>
+
+        <!-- Algorithm Concept Info Box -->
+        <details class="algo-concept" open>
+          <summary>💡 How Selection Sort Works</summary>
+          <div class="concept-body">
+            <p><strong>Mechanism:</strong> Divides the array into a sorted part and an unsorted part. Scans the unsorted part to locate the <em>absolute smallest (minimum)</em> element, then swaps it once into its sorted slot.</p>
+            <p><strong>Key Difference:</strong> Unlike Bubble Sort which may swap frequently on every pass, Selection Sort performs at most <strong>1 swap per outer loop pass</strong>.</p>
+            <div class="code-preview">
+              <pre><code>for (let i = 0; i &lt; n - 1; i++) {
+  let minIdx = i;
+  for (let j = i + 1; j &lt; n; j++) {
+    if (arr[j] &lt; arr[minIdx]) minIdx = j;
+  }
+  if (minIdx !== i) swap(arr[i], arr[minIdx]);
+}</code></pre>
+            </div>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <!-- Side-by-Side Comparison Summary Table -->
+    <section class="card comparison-table-card">
+      <h3>⚡ Head-to-Head Comparison: Bubble Sort vs. Selection Sort</h3>
+      <div class="table-responsive">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Bubble Sort 🧼</th>
+              <th>Selection Sort 🎯</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Core Strategy</strong></td>
+              <td>Repeatedly compares and swaps <strong>adjacent elements</strong> if out of order.</td>
+              <td>Repeatedly scans for the <strong>minimum element</strong> and places it at the front.</td>
+            </tr>
+            <tr>
+              <td><strong>Best-Case Time</strong></td>
+              <td><span class="highlight-green">O(n)</span> (with early-exit flag if already sorted)</td>
+              <td><span class="highlight-orange">O(n²)</span> (always checks every element)</td>
+            </tr>
+            <tr>
+              <td><strong>Average & Worst Time</strong></td>
+              <td><span class="highlight-orange">O(n²)</span></td>
+              <td><span class="highlight-orange">O(n²)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Number of Swaps</strong></td>
+              <td>High: Up to <span class="highlight-orange">O(n²)</span> swaps (swaps continuously).</td>
+              <td>Minimal: Exactly <span class="highlight-green">O(n)</span> swaps (at most 1 swap per pass).</td>
+            </tr>
+            <tr>
+              <td><strong>Stability</strong></td>
+              <td><span class="highlight-green">Stable</span> (preserves relative order of equal items)</td>
+              <td><span class="highlight-red">Unstable</span> (long-range swaps can alter relative order)</td>
+            </tr>
+            <tr>
+              <td><strong>Best Used For</strong></td>
+              <td>Educational demonstration; nearly-sorted arrays.</td>
+              <td>When writing to memory/flash storage is expensive (fewer swaps).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Crafted for intuitive visual understanding • Bubble Sort &amp; Selection Sort</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

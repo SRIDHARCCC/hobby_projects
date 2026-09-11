@@ -1,0 +1,47 @@
+# Environment variables & secrets
+.env
+.env.*
+*.env
+*.secret
+secrets/
+
+# Cloud credentials & keys
+*credentials*.json
+*service-account*.json
+*.pem
+*.key
+*.cert
+*.pfx
+*.p12
+.gcloud/
+.aws/
+.azure/
+
+# Operating system & Editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Dependencies & Build artifacts
+node_modules/
+dist/
+build/
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Logs & temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tmp/
+temp/
