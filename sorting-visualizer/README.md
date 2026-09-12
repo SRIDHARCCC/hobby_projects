@@ -1,6 +1,6 @@
-# 📊 SortLab: Bubble Sort & Selection Sort Visualizer
+# 📊 SortLab: Bubble, Selection & Merge Sort Visualizer
 
-An interactive educational web application designed to help you visually grasp and compare **Bubble Sort** and **Selection Sort**.
+An interactive educational web application designed to help you visually grasp and compare **Bubble Sort**, **Selection Sort**, and **Merge Sort**.
 
 ---
 
@@ -16,11 +16,11 @@ An interactive educational web application designed to help you visually grasp a
 ## 🎯 Key Features
 
 - **Single View & Side-by-Side Comparison Modes**:
-  - In **Single View**, focus entirely on either **Bubble Sort** or **Selection Sort** with code walkthroughs.
-  - In **Side-by-Side Mode**, both algorithms run synchronously on the exact same randomized input array, allowing you to visually see the difference in comparisons vs. swaps in real time!
+  - In **Single View**, focus entirely on **Bubble Sort**, **Selection Sort**, or **Merge Sort** with code walkthroughs.
+  - In **Side-by-Side Mode**, all three algorithms run synchronously on the exact same randomized input array, allowing you to visually see how $O(n \log n)$ Merge Sort dramatically outpaces $O(n^2)$ Bubble and Selection Sort in real time!
 - **Interactive Controls**:
   - **Start / Pause**: Run animations automatically at adjustable speeds.
-  - **Step Forward (⏭)**: Execute one comparison or swap at a time to examine the logic at your own pace.
+  - **Step Forward (⏭)**: Execute one comparison or swap/write at a time to examine the logic at your own pace.
   - **Array Size Slider**: Test with smaller arrays (5–15 elements) for readable values or larger arrays (up to 35 elements) for macro patterns.
   - **Speed Slider**: From Slowest (step-by-step clarity) to Lightning.
   - **Presets**:
@@ -42,17 +42,18 @@ An interactive educational web application designed to help you visually grasp a
 | 🔵 **Blue** | Default / Unsorted | Element is waiting to be processed. |
 | 🟡 **Yellow** | Comparing | The algorithm is currently inspecting these two elements. |
 | 🟣 **Purple** | Current Minimum | *Selection Sort only*: marks the lowest value found so far in the unsorted scan. |
-| 🔴 **Rose / Red** | Swapping | Elements are out of order and currently swapping positions. |
+| 🔴 **Rose / Red** | Swapping / Writing | Elements are out of order and swapping positions, or being written back into position during merge. |
 | 🟢 **Green** | Sorted | Permanently placed in its final sorted position. |
 
 ---
 
 ## 🧠 Algorithmic Concepts Summary
 
-| Characteristic | Bubble Sort | Selection Sort |
-|---|---|---|
-| **Core Idea** | Repeatedly swaps adjacent elements if they are out of order until the largest elements "bubble" to the end. | Repeatedly searches the unsorted subarray to find the absolute minimum, then places it at the front. |
-| **Comparisons** | $O(n^2)$ | Always $O(n^2)$ |
-| **Swaps (Writes)** | High: Up to $O(n^2)$ swaps | Minimal: At most $O(n)$ swaps (1 per pass) |
-| **Best Case** | $O(n)$ (when already sorted, thanks to early exit flag) | $O(n^2)$ |
-| **Stability** | **Stable** (preserves original order of duplicates) | **Unstable** (long swaps may alter relative order) |
+| Characteristic | Bubble Sort 🧼 | Selection Sort 🎯 | Merge Sort ⚡ |
+|---|---|---|---|
+| **Core Idea** | Repeatedly swaps adjacent elements if they are out of order until the largest elements "bubble" to the end. | Repeatedly searches the unsorted subarray to find the absolute minimum, then places it at the front. | **Divide & Conquer**: Recursively halves the array, sorts the halves, and merges them back in order. |
+| **Comparisons** | $O(n^2)$ | Always $O(n^2)$ | Guaranteed $O(n \log n)$ |
+| **Swaps (Writes)** | High: Up to $O(n^2)$ swaps | Minimal: At most $O(n)$ swaps (1 per pass) | $O(n \log n)$ writes into merged array |
+| **Best Case Time** | $O(n)$ (when already sorted) | $O(n^2)$ | $O(n \log n)$ |
+| **Space Complexity** | $O(1)$ (In-place) | $O(1)$ (In-place) | $O(n)$ (Auxiliary memory during merge) |
+| **Stability** | **Stable** | **Unstable** | **Stable** |

@@ -1,12 +1,13 @@
 /**
- * SortLab - Interactive Bubble Sort & Selection Sort Visualizer
+ * SortLab - Interactive Bubble, Selection & Merge Sort Visualizer
  */
 
 // Application State
 const state = {
   mode: 'single', // 'single' or 'compare'
-  algo1: 'bubble', // 'bubble' or 'selection'
+  algo1: 'bubble', // 'bubble', 'selection', or 'merge'
   algo2: 'selection',
+  algo3: 'merge',
   arraySize: 15,
   speedLevel: 3,
   preset: 'random',
@@ -19,7 +20,8 @@ const state = {
 
   // Engine instances
   engine1: null,
-  engine2: null
+  engine2: null,
+  engine3: null
 };
 
 const SPEED_DELAYS = {
@@ -43,6 +45,7 @@ const singleModeBtn = document.getElementById('singleModeBtn');
 const compareModeBtn = document.getElementById('compareModeBtn');
 const visualizerContainer = document.getElementById('visualizerContainer');
 const panel2 = document.getElementById('panel2');
+const panel3 = document.getElementById('panel3');
 
 const arraySizeInput = document.getElementById('arraySize');
 const sizeVal = document.getElementById('sizeVal');
@@ -57,6 +60,8 @@ const stepBtn = document.getElementById('stepBtn');
 const resetBtn = document.getElementById('resetBtn');
 
 const algoSelect1 = document.getElementById('algoSelect1');
+const complexityTag1 = document.getElementById('complexityTag1');
+const swapLabel1 = document.getElementById('swapLabel1');
 const conceptTitle1 = document.getElementById('conceptTitle1');
 const conceptBody1 = document.getElementById('conceptBody1');
 
@@ -64,6 +69,7 @@ const conceptBody1 = document.getElementById('conceptBody1');
 const ALGO_CONCEPTS = {
   bubble: {
     title: '💡 How Bubble Sort Works',
+    complexity: 'Time: O(n²) | Space: O(1)',
     body: `
       <p><strong>Mechanism:</strong> Iterates through the list, comparing adjacent items <code>(A[j], A[j+1])</code>. If they are in the wrong order, it swaps them.</p>
       <p><strong>Why "Bubble"?</strong> With each complete pass, the largest remaining unsorted element "bubbles up" to its correct final place at the end of the list.</p>
@@ -79,6 +85,7 @@ const ALGO_CONCEPTS = {
   },
   selection: {
     title: '💡 How Selection Sort Works',
+    complexity: 'Time: O(n²) | Space: O(1)',
     body: `
       <p><strong>Mechanism:</strong> Divides the array into a sorted portion and an unsorted portion. Scans the unsorted portion to find the <em>absolute minimum</em>, then places it at the front.</p>
       <p><strong>Key Feature:</strong> Performs significantly fewer writes/swaps than Bubble Sort (at most <strong>1 swap per pass</strong>), but always takes O(n²) comparisons.</p>
@@ -89,6 +96,22 @@ const ALGO_CONCEPTS = {
     if (arr[j] &lt; arr[minIdx]) minIdx = j;
   }
   if (minIdx !== i) swap(arr[i], arr[minIdx]);
+}</code></pre>
+      </div>`
+  },
+  merge: {
+    title: '💡 How Merge Sort Works',
+    complexity: 'Time: O(n log n) | Space: O(n)',
+    body: `
+      <p><strong>Mechanism:</strong> A classic <em>Divide and Conquer</em> algorithm. Recursively divides the array into halves until subarrays contain a single item, then repeatedly merges two sorted halves back together in linear time.</p>
+      <p><strong>Key Feature:</strong> Consistently finishes in <strong>O(n log n)</strong> comparisons regardless of initial array ordering, drastically outperforming O(n²) quadratic sorts.</p>
+      <div class="code-preview">
+        <pre><code>function mergeSort(arr, l, r) {
+  if (l &gt;= r) return;
+  const m = Math.floor((l + r) / 2);
+  mergeSort(arr, l, m);
+  mergeSort(arr, m + 1, r);
+  merge(arr, l, m, r);
 }</code></pre>
       </div>`
   }
@@ -143,8 +166,10 @@ class SortEngine {
   createGenerator() {
     if (this.algoType === 'bubble') {
       return this.bubbleSort();
-    } else {
+    } else if (this.algoType === 'selection') {
       return this.selectionSort();
+    } else if (this.algoType === 'merge') {
+      return this.mergeSort();
     }
   }
 
@@ -173,10 +198,16 @@ class SortEngine {
         bar.classList.add('sorted');
       } else if (highlights.swapping && highlights.swapping.includes(idx)) {
         bar.classList.add('swapping');
+      } else if (highlights.overwriting && highlights.overwriting.includes(idx)) {
+        bar.classList.add('overwriting');
       } else if (highlights.min !== undefined && highlights.min === idx) {
         bar.classList.add('min-candidate');
       } else if (highlights.comparing && highlights.comparing.includes(idx)) {
         bar.classList.add('comparing');
+      }
+
+      if (highlights.range && idx >= highlights.range[0] && idx <= highlights.range[1]) {
+        bar.classList.add('active-range');
       }
 
       wrapper.appendChild(valLabel);
@@ -341,6 +372,121 @@ class SortEngine {
     };
   }
 
+  // Merge Sort Step Generator
+  *mergeSort() {
+    const arr = this.array;
+    const n = arr.length;
+    const sortedIndices = new Set();
+
+    yield* this.mergeSortRecursive(0, n - 1, sortedIndices);
+
+    for (let k = 0; k < n; k++) sortedIndices.add(k);
+    this.isFinished = true;
+    this.setStatus('Completed 🎉', 'status-done');
+    return {
+      render: () => this.renderBars({ sorted: sortedIndices }),
+      explanation: `Merge Sort finished! Total comparisons: <strong>${this.comparisons}</strong>, total writes: <strong>${this.swaps}</strong>.`
+    };
+  }
+
+  *mergeSortRecursive(start, end, sortedIndices) {
+    if (start >= end) return;
+    const mid = Math.floor((start + end) / 2);
+
+    yield {
+      render: () => this.renderBars({
+        range: [start, end],
+        sorted: sortedIndices
+      }),
+      explanation: `Divide: Splitting subarray [<code>${start}..${end}</code>] at midpoint <code>${mid}</code>.`
+    };
+
+    yield* this.mergeSortRecursive(start, mid, sortedIndices);
+    yield* this.mergeSortRecursive(mid + 1, end, sortedIndices);
+    yield* this.mergeArrays(start, mid, end, sortedIndices);
+  }
+
+  *mergeArrays(start, mid, end, sortedIndices) {
+    const arr = this.array;
+    const leftPart = arr.slice(start, mid + 1);
+    const rightPart = arr.slice(mid + 1, end + 1);
+
+    yield {
+      render: () => this.renderBars({
+        range: [start, end],
+        sorted: sortedIndices
+      }),
+      explanation: `Conquer: Merging sorted halves [<code>${start}..${mid}</code>] and [<code>${mid + 1}..${end}</code>].`
+    };
+
+    let i = 0;
+    let j = 0;
+    const temp = [];
+
+    while (i < leftPart.length && j < rightPart.length) {
+      this.comparisons++;
+      this.updateStats();
+
+      const leftIdx = start + i;
+      const rightIdx = mid + 1 + j;
+
+      yield {
+        render: () => this.renderBars({
+          range: [start, end],
+          comparing: [leftIdx, rightIdx],
+          sorted: sortedIndices
+        }),
+        explanation: `Comparing left element <strong>${leftPart[i]}</strong> (index <code>${leftIdx}</code>) with right element <strong>${rightPart[j]}</strong> (index <code>${rightIdx}</code>).`
+      };
+
+      if (leftPart[i] <= rightPart[j]) {
+        temp.push(leftPart[i]);
+        i++;
+      } else {
+        temp.push(rightPart[j]);
+        j++;
+      }
+    }
+
+    while (i < leftPart.length) {
+      temp.push(leftPart[i]);
+      i++;
+    }
+
+    while (j < rightPart.length) {
+      temp.push(rightPart[j]);
+      j++;
+    }
+
+    for (let t = 0; t < temp.length; t++) {
+      const targetIdx = start + t;
+      arr[targetIdx] = temp[t];
+      this.swaps++;
+      this.updateStats();
+
+      if (start === 0 && end === arr.length - 1) {
+        sortedIndices.add(targetIdx);
+      }
+
+      yield {
+        render: () => this.renderBars({
+          range: [start, end],
+          overwriting: [targetIdx],
+          sorted: sortedIndices
+        }),
+        explanation: `Writing sorted element <strong>${temp[t]}</strong> into array index <code>${targetIdx}</code>.`
+      };
+    }
+
+    yield {
+      render: () => this.renderBars({
+        range: [start, end],
+        sorted: sortedIndices
+      }),
+      explanation: `Subarray [<code>${start}..${end}</code>] is now merged in sorted sequence.`
+    };
+  }
+
   step() {
     if (this.isFinished || !this.generator) return true;
     const result = this.generator.next();
@@ -413,6 +559,9 @@ function initVisualizers() {
   if (state.mode === 'compare') {
     state.engine2 = new SortEngine(2, 'selection');
     state.engine2.init(state.initialArray);
+
+    state.engine3 = new SortEngine(3, 'merge');
+    state.engine3.init(state.initialArray);
   }
 
   updateControlsState({ running: false });
@@ -426,22 +575,36 @@ function resetCurrentArray() {
   if (state.mode === 'compare') {
     state.engine2 = new SortEngine(2, 'selection');
     state.engine2.init(state.initialArray);
+
+    state.engine3 = new SortEngine(3, 'merge');
+    state.engine3.init(state.initialArray);
   }
 
   updateControlsState({ running: false });
 }
 
 function stepForward() {
-  if (state.engine1.isFinished && (!state.engine2 || state.engine2.isFinished)) {
+  const finished1 = state.engine1 && state.engine1.isFinished;
+  const finished2 = !state.engine2 || state.engine2.isFinished;
+  const finished3 = !state.engine3 || state.engine3.isFinished;
+
+  if (finished1 && finished2 && finished3) {
     return;
   }
 
-  state.engine1.setStatus('Stepping...', 'status-running');
-  state.engine1.step();
+  if (!finished1) {
+    state.engine1.setStatus('Stepping...', 'status-running');
+    state.engine1.step();
+  }
 
-  if (state.mode === 'compare' && state.engine2) {
+  if (state.mode === 'compare' && state.engine2 && !finished2) {
     state.engine2.setStatus('Stepping...', 'status-running');
     state.engine2.step();
+  }
+
+  if (state.mode === 'compare' && state.engine3 && !finished3) {
+    state.engine3.setStatus('Stepping...', 'status-running');
+    state.engine3.step();
   }
 
   checkAllFinished();
@@ -454,8 +617,9 @@ function startAutoPlay() {
   state.isPaused = false;
   updateControlsState({ running: true });
 
-  state.engine1.setStatus('Sorting...', 'status-running');
-  if (state.engine2) state.engine2.setStatus('Sorting...', 'status-running');
+  if (state.engine1 && !state.engine1.isFinished) state.engine1.setStatus('Sorting...', 'status-running');
+  if (state.engine2 && !state.engine2.isFinished) state.engine2.setStatus('Sorting...', 'status-running');
+  if (state.engine3 && !state.engine3.isFinished) state.engine3.setStatus('Sorting...', 'status-running');
 
   runLoop();
 }
@@ -468,8 +632,12 @@ function runLoop() {
   if (state.mode === 'compare' && state.engine2) {
     done2 = state.engine2.step();
   }
+  let done3 = true;
+  if (state.mode === 'compare' && state.engine3) {
+    done3 = state.engine3.step();
+  }
 
-  if (done1 && done2) {
+  if (done1 && done2 && done3) {
     stopAutoPlay();
     checkAllFinished();
     return;
@@ -485,8 +653,9 @@ function pauseAutoPlay() {
   if (state.timerId) clearTimeout(state.timerId);
   updateControlsState({ running: false, paused: true });
 
-  state.engine1.setStatus('Paused', 'status-ready');
-  if (state.engine2) state.engine2.setStatus('Paused', 'status-ready');
+  if (state.engine1 && !state.engine1.isFinished) state.engine1.setStatus('Paused', 'status-ready');
+  if (state.engine2 && !state.engine2.isFinished) state.engine2.setStatus('Paused', 'status-ready');
+  if (state.engine3 && !state.engine3.isFinished) state.engine3.setStatus('Paused', 'status-ready');
 }
 
 function stopAutoPlay() {
@@ -501,8 +670,9 @@ function stopAutoPlay() {
 function checkAllFinished() {
   const finished1 = state.engine1 && state.engine1.isFinished;
   const finished2 = !state.engine2 || state.engine2.isFinished;
+  const finished3 = !state.engine3 || state.engine3.isFinished;
 
-  if (finished1 && finished2) {
+  if (finished1 && finished2 && finished3) {
     stopAutoPlay();
     updateControlsState({ running: false, finished: true });
   }
@@ -531,6 +701,7 @@ singleModeBtn.addEventListener('click', () => {
   visualizerContainer.classList.remove('compare-layout');
   visualizerContainer.classList.add('single-layout');
   panel2.classList.add('hidden');
+  panel3.classList.add('hidden');
   initVisualizers();
 });
 
@@ -542,8 +713,9 @@ compareModeBtn.addEventListener('click', () => {
   visualizerContainer.classList.remove('single-layout');
   visualizerContainer.classList.add('compare-layout');
   panel2.classList.remove('hidden');
+  panel3.classList.remove('hidden');
   
-  // In compare mode, ensure panel 1 is Bubble Sort
+  // In compare mode, panel 1 is Bubble Sort
   state.algo1 = 'bubble';
   algoSelect1.value = 'bubble';
   updateConceptExplanation('bubble');
@@ -561,6 +733,12 @@ function updateConceptExplanation(algo) {
   if (data) {
     conceptTitle1.textContent = data.title;
     conceptBody1.innerHTML = data.body;
+    if (complexityTag1 && data.complexity) {
+      complexityTag1.textContent = data.complexity;
+    }
+    if (swapLabel1) {
+      swapLabel1.textContent = algo === 'merge' ? 'Writes / Merges' : 'Swaps';
+    }
   }
 }
 

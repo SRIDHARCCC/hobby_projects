@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sorting Visualizer - Bubble Sort & Selection Sort</title>
+  <title>SortLab: Bubble, Selection & Merge Sort Visualizer</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
         <div class="logo-icon">📊</div>
         <div>
           <h1>SortLab: Visual Algorithm Explorer</h1>
-          <p class="subtitle">Understand <strong>Bubble Sort</strong> and <strong>Selection Sort</strong> with interactive animations and step-by-step explanations</p>
+          <p class="subtitle">Understand <strong>Bubble Sort</strong>, <strong>Selection Sort</strong>, and <strong>Merge Sort</strong> with interactive animations and step-by-step explanations</p>
         </div>
       </div>
       <div class="mode-toggle-group">
@@ -73,25 +73,26 @@
       <span class="legend-item"><span class="color-dot dot-default"></span> Unsorted</span>
       <span class="legend-item"><span class="color-dot dot-comparing"></span> Comparing</span>
       <span class="legend-item"><span class="color-dot dot-current-min"></span> Current Minimum (Selection)</span>
-      <span class="legend-item"><span class="color-dot dot-swapping"></span> Swapping</span>
+      <span class="legend-item"><span class="color-dot dot-swapping"></span> Swapping / Writing</span>
       <span class="legend-item"><span class="color-dot dot-sorted"></span> Sorted</span>
     </div>
 
     <!-- Main Visualizer Area -->
     <main id="visualizerContainer" class="visualizer-grid single-layout">
-      <!-- Section 1: Bubble Sort (or Primary) -->
+      <!-- Section 1: Primary Algorithm (Bubble Sort by default) -->
       <section id="panel1" class="algorithm-card card">
         <div class="algo-header">
           <div class="algo-title-wrap">
             <select id="algoSelect1" class="algo-dropdown">
               <option value="bubble" selected>Bubble Sort</option>
               <option value="selection">Selection Sort</option>
+              <option value="merge">Merge Sort</option>
             </select>
-            <span class="complexity-tag">Time: O(n²) | Space: O(1)</span>
+            <span id="complexityTag1" class="complexity-tag">Time: O(n²) | Space: O(1)</span>
           </div>
           <div class="metrics-row">
             <div class="metric-pill">Comparisons: <strong id="compCount1">0</strong></div>
-            <div class="metric-pill">Swaps: <strong id="swapCount1">0</strong></div>
+            <div class="metric-pill"><span id="swapLabel1">Swaps</span>: <strong id="swapCount1">0</strong></div>
             <div class="metric-pill">Status: <strong id="statusText1" class="status-ready">Ready</strong></div>
           </div>
         </div>
@@ -171,11 +172,56 @@
           </div>
         </details>
       </section>
+
+      <!-- Section 3: Merge Sort (Used in Comparison Mode) -->
+      <section id="panel3" class="algorithm-card card hidden">
+        <div class="algo-header">
+          <div class="algo-title-wrap">
+            <h2 class="algo-title-static" style="color: #a78bfa;">Merge Sort</h2>
+            <span class="complexity-tag">Time: O(n log n) | Space: O(n)</span>
+          </div>
+          <div class="metrics-row">
+            <div class="metric-pill">Comparisons: <strong id="compCount3">0</strong></div>
+            <div class="metric-pill">Writes / Merges: <strong id="swapCount3">0</strong></div>
+            <div class="metric-pill">Status: <strong id="statusText3" class="status-ready">Ready</strong></div>
+          </div>
+        </div>
+
+        <div class="bars-viewport">
+          <div id="barsContainer3" class="bars-container"></div>
+        </div>
+
+        <div class="step-explanation card-inner">
+          <div class="explanation-header">
+            <span class="pulse-indicator"></span>
+            <strong>What's happening right now:</strong>
+          </div>
+          <p id="explanationText3">Click "Start Sort" to observe Merge Sort's divide-and-conquer efficiency.</p>
+        </div>
+
+        <!-- Algorithm Concept Info Box -->
+        <details class="algo-concept" open>
+          <summary>💡 How Merge Sort Works</summary>
+          <div class="concept-body">
+            <p><strong>Mechanism:</strong> Recursively divides the array into halves until subarrays contain a single element, then repeatedly merges two sorted halves back into a combined sorted sequence.</p>
+            <p><strong>Key Feature:</strong> Consistently finishes in <strong>O(n log n)</strong> comparisons regardless of initial array ordering, drastically outperforming O(n²) quadratic sorts.</p>
+            <div class="code-preview">
+              <pre><code>function mergeSort(arr, l, r) {
+  if (l &gt;= r) return;
+  const m = Math.floor((l + r) / 2);
+  mergeSort(arr, l, m);
+  mergeSort(arr, m + 1, r);
+  merge(arr, l, m, r);
+}</code></pre>
+            </div>
+          </div>
+        </details>
+      </section>
     </main>
 
     <!-- Side-by-Side Comparison Summary Table -->
     <section class="card comparison-table-card">
-      <h3>⚡ Head-to-Head Comparison: Bubble Sort vs. Selection Sort</h3>
+      <h3>⚡ Head-to-Head Comparison: Bubble Sort vs. Selection Sort vs. Merge Sort</h3>
       <div class="table-responsive">
         <table class="comparison-table">
           <thead>
@@ -183,6 +229,7 @@
               <th>Feature</th>
               <th>Bubble Sort 🧼</th>
               <th>Selection Sort 🎯</th>
+              <th>Merge Sort ⚡</th>
             </tr>
           </thead>
           <tbody>
@@ -190,31 +237,43 @@
               <td><strong>Core Strategy</strong></td>
               <td>Repeatedly compares and swaps <strong>adjacent elements</strong> if out of order.</td>
               <td>Repeatedly scans for the <strong>minimum element</strong> and places it at the front.</td>
+              <td><strong>Divide &amp; Conquer</strong>: Halves array recursively, sorts halves, merges back in order.</td>
             </tr>
             <tr>
               <td><strong>Best-Case Time</strong></td>
               <td><span class="highlight-green">O(n)</span> (with early-exit flag if already sorted)</td>
               <td><span class="highlight-orange">O(n²)</span> (always checks every element)</td>
+              <td><span class="highlight-green">O(n log n)</span> (guaranteed divide &amp; merge)</td>
             </tr>
             <tr>
-              <td><strong>Average & Worst Time</strong></td>
+              <td><strong>Average &amp; Worst Time</strong></td>
               <td><span class="highlight-orange">O(n²)</span></td>
               <td><span class="highlight-orange">O(n²)</span></td>
+              <td><span class="highlight-green">O(n log n)</span></td>
             </tr>
             <tr>
-              <td><strong>Number of Swaps</strong></td>
+              <td><strong>Space Complexity</strong></td>
+              <td><span class="highlight-green">O(1)</span> (In-place)</td>
+              <td><span class="highlight-green">O(1)</span> (In-place)</td>
+              <td><span class="highlight-orange">O(n)</span> (Requires auxiliary memory during merge)</td>
+            </tr>
+            <tr>
+              <td><strong>Number of Swaps / Writes</strong></td>
               <td>High: Up to <span class="highlight-orange">O(n²)</span> swaps (swaps continuously).</td>
               <td>Minimal: Exactly <span class="highlight-green">O(n)</span> swaps (at most 1 swap per pass).</td>
+              <td><span class="highlight-green">O(n log n)</span> writes into merged array.</td>
             </tr>
             <tr>
               <td><strong>Stability</strong></td>
               <td><span class="highlight-green">Stable</span> (preserves relative order of equal items)</td>
               <td><span class="highlight-red">Unstable</span> (long-range swaps can alter relative order)</td>
+              <td><span class="highlight-green">Stable</span> (maintains order of equal values)</td>
             </tr>
             <tr>
               <td><strong>Best Used For</strong></td>
               <td>Educational demonstration; nearly-sorted arrays.</td>
               <td>When writing to memory/flash storage is expensive (fewer swaps).</td>
+              <td>Large datasets; guaranteed fast O(n log n) runtime; linked lists.</td>
             </tr>
           </tbody>
         </table>
@@ -223,7 +282,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>Crafted for intuitive visual understanding • Bubble Sort &amp; Selection Sort</p>
+      <p>Crafted for intuitive visual understanding • Bubble Sort, Selection Sort &amp; Merge Sort</p>
     </footer>
   </div>
 

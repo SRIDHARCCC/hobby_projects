@@ -42,7 +42,7 @@ body {
 }
 
 .app-container {
-  max-width: 1280px;
+  max-width: 1440px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -312,7 +312,7 @@ body {
 }
 
 .visualizer-grid.compare-layout {
-  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 }
 
 .algorithm-card {
@@ -461,10 +461,16 @@ body {
   box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
 }
 
-.bar.swapping {
+.bar.swapping,
+.bar.overwriting {
   background-color: var(--bar-swapping) !important;
   transform: scaleY(1.05);
   box-shadow: 0 0 15px rgba(244, 63, 94, 0.6);
+}
+
+.bar.active-range {
+  outline: 2px dashed rgba(56, 189, 248, 0.6);
+  outline-offset: 1px;
 }
 
 .bar.sorted {
