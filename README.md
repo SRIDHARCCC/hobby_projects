@@ -48,10 +48,11 @@ hobby_projects/
 
 ## ➕ Contributing a New App
 
-We welcome community contributions! Every app must follow the self-contained, zero-dependency architecture.
+We welcome community contributions! Every app must follow the self-contained, zero-dependency architecture. See our full [**Contributing Guide**](./CONTRIBUTING.md) for details.
 
 ### For Developers & AI Coding Agents
-This repository includes formal instructions for AI coding assistants and a specialized **Agent Skill**:
+This repository includes formal instructions for human contributors and AI coding assistants, as well as a specialized **Agent Skill**:
+- **Contribution Guide**: Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for complete setup and PR guidelines.
 - **Agent Instructions**: Read [`AGENTS.md`](./AGENTS.md) for full project standards.
 - **Agent Skill**: [`hobby-project-builder`](./.agents/skills/hobby-project-builder/SKILL.md)
   - **Auto-Scaffolding Tool**:
