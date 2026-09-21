@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQLi-Lab | Interactive SQL Injection Explainer & Sandbox</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>SQLi-Lab</h1>
+            <span class="badge badge-accent">Educational Sandbox</span>
+            <span class="badge badge-users">10 User Database</span>
+          </div>
+          <p class="subtitle">Interactive Explainer: How SQL Injection Works, Why It Happens & How to Defend Against It</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <!-- Global Mode Switcher -->
+        <div class="mode-switcher-container">
+          <span class="mode-label">Engine Mode:</span>
+          <div class="mode-switch-group">
+            <button id="modeVulnerableBtn" class="mode-btn active vulnerable" title="String Concatenation: Input concatenated directly into SQL command">
+              <span class="indicator red-pulse"></span>
+              ⚠️ Vulnerable Code
+            </button>
+            <button id="modeSecureBtn" class="mode-btn secure" title="Parameterized Queries: Inputs strictly separated from SQL commands">
+              <span class="indicator green-glow"></span>
+              🛡️ Secure (Prepared)
+            </button>
+          </div>
+        </div>
+
+        <button id="resetDbGlobalBtn" class="btn btn-secondary btn-sm" title="Reset all 10 users and system secrets back to default">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Reset DB
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-login">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        1. Auth Bypass Lab
+      </button>
+      <button class="nav-tab" data-tab="tab-search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        2. UNION Exfiltration Lab
+      </button>
+      <button class="nav-tab" data-tab="tab-database">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        3. Database Inspector (10 Users)
+      </button>
+      <button class="nav-tab" data-tab="tab-theory">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        4. Visual Explainer & Theory
+      </button>
+      <button class="nav-tab" data-tab="tab-challenges">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        5. CTF Missions (<span id="challengeCounter">0/4</span>)
+      </button>
+      <button class="nav-tab" data-tab="tab-defense">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        6. Defense & Code Fixes
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <!-- ========================================== -->
+      <!-- TAB 1: AUTHENTICATION BYPASS LAB -->
+      <!-- ========================================== -->
+      <section id="tab-login" class="tab-pane active">
+        <div class="lab-grid">
+          
+          <!-- Left Column: The Login Form & Payload Inserters -->
+          <div class="panel login-panel">
+            <div class="panel-header">
+              <h2>
+                <span class="panel-icon">🔐</span>
+                Corporate Portal Login
+              </h2>
+              <span id="formModeBadge" class="badge badge-danger">Vulnerable Query Mode</span>
+            </div>
+
+            <p class="panel-desc">
+              Test how untrusted input alters database execution. Type credentials manually or click any exploit preset below:
+            </p>
+
+            <form id="loginForm" class="login-form" onsubmit="return false;">
+              <div class="form-group">
+                <label for="loginUsername">Username:</label>
+                <div class="input-wrap">
+                  <input type="text" id="loginUsername" placeholder="e.g. admin or ' OR '1'='1" autocomplete="off" value="admin' --">
+                  <button type="button" class="btn-clear-field" onclick="document.getElementById('loginUsername').value=''; window.App.updateLivePreview();" title="Clear field">✕</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="loginPassword">Password:</label>
+                <div class="input-wrap">
+                  <input type="text" id="loginPassword" placeholder="e.g. any_password_or_blank" autocomplete="off" value="anything">
+                  <button type="button" class="btn-clear-field" onclick="document.getElementById('loginPassword').value=''; window.App.updateLivePreview();" title="Clear field">✕</button>
+                </div>
+              </div>
+
+              <!-- Quick Attack / Payload Presets -->
+              <div class="payload-presets-card">
+                <div class="presets-title">
+                  <span>⚡ Quick Injection Payloads:</span>
+                  <small>Click to apply payload</small>
+                </div>
+                <div class="payload-chips">
+                  <button type="button" class="chip chip-attack" data-user="' OR '1'='1" data-pass="anything" data-desc="Classic Tautology: forces WHERE clause to evaluate to TRUE for every user in the table">
+                    ' OR '1'='1
+                  </button>
+                  <button type="button" class="chip chip-attack" data-user="admin' --" data-pass="wrong_password" data-desc="Targeted Admin Hijack: SQL comment '--' cuts off the password check completely">
+                    admin' --
+                  </button>
+                  <button type="button" class="chip chip-attack" data-user="alice_w' --" data-pass="bypass" data-desc="Targeted Alice Impersonation: Bypass password check for Alice Wright (Lead Financial Analyst)">
+                    alice_w' --
+                  </button>
+                  <button type="button" class="chip chip-attack" data-user="' OR 1=1 --" data-pass="" data-desc="Tautology + Comment: Always True with password condition truncated">
+                    ' OR 1=1 --
+                  </button>
+                  <button type="button" class="chip chip-attack" data-user="' OR ''='" data-pass="" data-desc="Empty String Tautology: Evaluates ''='' as TRUE without needing numbers">
+                    ' OR ''='
+                  </button>
+                  <button type="button" class="chip chip-danger" data-user="'; DROP TABLE users; --" data-pass="" data-desc="Stacked Query: Attempts to execute multiple statements to drop the database table">
+                    '; DROP TABLE users; --
+                  </button>
+                  <button type="button" class="chip chip-legit" data-user="bob_m" data-pass="BuilderBob#Secure!" data-desc="Legitimate Account: Bob Martinez with valid password">
+                    Legitimate: bob_m
+                  </button>
+                </div>
+                <div id="payloadTip" class="payload-tip">Targeted Admin Hijack: SQL comment '--' cuts off the password check completely</div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" id="executeLoginBtn" class="btn btn-primary btn-block">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Execute Query & Attempt Login
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Live SQL Visualizer & Execution Results -->
+          <div class="panel visualizer-panel">
+            <div class="panel-header">
+              <h2>
+                <span class="panel-icon">🔍</span>
+                Real-Time Query Visualizer
+              </h2>
+              <span class="live-tag"><span class="live-dot"></span> LIVE PARSER</span>
+            </div>
+
+            <div class="sql-code-container">
+              <div class="code-header">
+                <span class="code-title">Backend SQL Query Being Formatted:</span>
+                <span id="syntaxLegend" class="syntax-legend">
+                  <span class="legend-item"><span class="legend-color color-base"></span>SQL Structure</span>
+                  <span class="legend-item"><span class="legend-color color-payload"></span>Injected Data</span>
+                  <span class="legend-item"><span class="legend-color color-comment"></span>Ignored Comment</span>
+                </span>
+              </div>
+              <div id="sqlLivePreview" class="sql-live-display">
+                <!-- Dynamically populated syntax-highlighted SQL -->
+              </div>
+            </div>
+
+            <!-- Execution Result Alert -->
+            <div id="executionResultCard" class="result-card">
+              <div class="result-placeholder">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p>Click <strong>"Execute Query & Attempt Login"</strong> to see how the database engine evaluates this statement.</p>
+              </div>
+            </div>
+
+            <!-- Row-by-Row Database Logic Evaluation -->
+            <div class="eval-accordion">
+              <button type="button" id="toggleEvalAccordionBtn" class="accordion-header">
+                <span>🔬 View Database Row Evaluation Details (<span id="matchedRowsCountBadge">0</span> of 10 users matched)</span>
+                <span class="accordion-arrow">▼</span>
+              </button>
+              <div id="evalAccordionContent" class="accordion-body hidden">
+                <p class="accordion-hint">
+                  See how the SQL query's WHERE clause was evaluated against each of the 10 users in the table:
+                </p>
+                <div id="rowEvaluationList" class="row-eval-list">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 2: UNION EXFILTRATION LAB -->
+      <!-- ========================================== -->
+      <section id="tab-search" class="tab-pane">
+        <div class="lab-grid">
+          
+          <div class="panel">
+            <div class="panel-header">
+              <h2>
+                <span class="panel-icon">🕵️</span>
+                Employee Directory Search
+              </h2>
+              <span class="badge badge-warning">UNION Attack Vector</span>
+            </div>
+
+            <p class="panel-desc">
+              Applications often allow searching public records (like employee names). When user search input is concatenated into the query without parameterization, an attacker can append a <code>UNION SELECT</code> to extract rows from completely different tables!
+            </p>
+
+            <div class="search-form-wrap">
+              <div class="form-group">
+                <label for="searchQueryInput">Search Name or Department:</label>
+                <div class="input-wrap">
+                  <input type="text" id="searchQueryInput" placeholder="e.g. Alice or ' UNION SELECT ..." value="' UNION SELECT id, username, password, email, role, secret_data FROM users --">
+                </div>
+              </div>
+
+              <div class="payload-presets-card">
+                <div class="presets-title">
+                  <span>⚡ Quick UNION Payloads:</span>
+                </div>
+                <div class="payload-chips">
+                  <button type="button" class="chip chip-attack" onclick="window.App.applySearchPreset('users')">
+                    Steal All 10 User Passwords (FROM users)
+                  </button>
+                  <button type="button" class="chip chip-attack" onclick="window.App.applySearchPreset('secrets')">
+                    Exfiltrate API & Encryption Keys (FROM secrets)
+                  </button>
+                  <button type="button" class="chip chip-legit" onclick="window.App.applySearchPreset('Alice')">
+                    Normal Search: "Alice"
+                  </button>
+                  <button type="button" class="chip chip-legit" onclick="window.App.applySearchPreset('Security')">
+                    Normal Search: "Security"
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" id="executeSearchBtn" class="btn btn-primary">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  Run Directory Search
+                </button>
+              </div>
+            </div>
+
+            <div class="sql-code-container mt-4">
+              <div class="code-header">
+                <span class="code-title">Search SQL Query Formatted:</span>
+              </div>
+              <div id="searchSqlPreview" class="sql-live-display">
+                <!-- Preview -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Search Results Panel -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2>
+                <span class="panel-icon">📋</span>
+                Query Results Returned to User
+              </h2>
+              <span id="searchResultsCountBadge" class="badge badge-accent">0 Results</span>
+            </div>
+
+            <div id="searchExplanationBox" class="explanation-box hidden">
+              <!-- Dynamically populated educational explanation of UNION attack -->
+            </div>
+
+            <div class="table-responsive">
+              <table id="searchResultsTable" class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Full Name / Field 1</th>
+                    <th>Role / Field 2</th>
+                    <th>Department / Field 3</th>
+                    <th>Contact / Field 4</th>
+                  </tr>
+                </thead>
+                <tbody id="searchResultsBody">
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Run a search to see returned results.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 3: DATABASE INSPECTOR (10 USERS) -->
+      <!-- ========================================== -->
+      <section id="tab-database" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>
+                <span class="panel-icon">🗄️</span>
+                Active Database: <code>users</code> Table (10 Sample Records)
+              </h2>
+              <p class="panel-desc">
+                Here are the 10 accounts stored in the application's database. Notice how vulnerable queries manipulate which rows get returned!
+              </p>
+            </div>
+            <div class="header-actions">
+              <button id="resetDbInspectorBtn" class="btn btn-secondary btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                Restore Default Database
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <input type="text" id="dbFilterInput" placeholder="Filter 10 users by name, role, or department..." class="search-input">
+            <span class="text-muted small">Showing all 10 active records</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table db-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Plaintext Password</th>
+                  <th>Full Name</th>
+                  <th>Role</th>
+                  <th>Department</th>
+                  <th>Clearance</th>
+                  <th>Confidential / Secret Data</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="dbUsersTableBody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="secondary-db-section mt-6">
+            <h3>
+              <span class="panel-icon">🗝️</span>
+              Secondary Table: <code>secrets</code> (Target for UNION Exfiltration)
+            </h3>
+            <p class="panel-desc">
+              Sensitive internal system credentials that normal users should NEVER be able to query.
+            </p>
+            <div class="table-responsive">
+              <table class="data-table db-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Secret Name</th>
+                    <th>Confidential Value</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody id="dbSecretsTableBody">
+                  <!-- Dynamically rendered -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 4: VISUAL EXPLAINER & THEORY -->
+      <!-- ========================================== -->
+      <section id="tab-theory" class="tab-pane">
+        <div class="theory-container">
+
+          <!-- Core Concept Hero -->
+          <div class="theory-hero">
+            <div class="hero-badge">CWE-89: Improper Neutralization of Special Elements used in an SQL Command</div>
+            <h2>What is SQL Injection (SQLi)?</h2>
+            <p>
+              SQL Injection is a critical cybersecurity vulnerability where an application takes <strong>untrusted user input</strong> and concatenates it directly into an SQL database query string without proper separation.
+            </p>
+            <div class="core-axiom-box">
+              <div class="axiom-title">🧠 The Golden Rule of SQL Injection:</div>
+              <p>
+                SQL injection occurs when the database <strong>cannot tell the difference between CODE and DATA</strong>. When you concatenate strings, user data with special characters (like <code>'</code> or <code>--</code>) breaks out of the intended data container and gets compiled into executable database instructions!
+              </p>
+            </div>
+          </div>
+
+          <!-- Infographic / Visual Diagram -->
+          <div class="theory-card">
+            <h3>Visual Anatomy: How String Concatenation Breaks Boundaries</h3>
+            
+            <div class="visual-breakdown-flow">
+              <div class="flow-step">
+                <div class="step-num">Step 1</div>
+                <h4>Developer's Intention</h4>
+                <div class="code-box-mini">
+                  <code>query = "SELECT * FROM users WHERE user = '" + input + "' AND pass = '" + pass + "'";</code>
+                </div>
+                <p>The developer expects <code>input</code> to always be a safe literal string like <code>"bob"</code>.</p>
+              </div>
+
+              <div class="flow-arrow">➔</div>
+
+              <div class="flow-step danger-step">
+                <div class="step-num">Step 2</div>
+                <h4>Attacker Crafts Payload</h4>
+                <div class="code-box-mini">
+                  <code>input = "admin' --"</code>
+                </div>
+                <p>The single-quote <code>'</code> closes the expected data string prematurely. The <code>--</code> marks the rest as a comment!</p>
+              </div>
+
+              <div class="flow-arrow">➔</div>
+
+              <div class="flow-step parser-step">
+                <div class="step-num">Step 3</div>
+                <h4>SQL Engine Parses Modified AST</h4>
+                <div class="code-box-mini">
+                  <code>SELECT * FROM users WHERE user = <span class="highlight-val">'admin'</span> <span class="highlight-comment">--' AND pass = '...'</span>;</code>
+                </div>
+                <p>The database parser completely ignores the password check. The developer's logic is hijacked!</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- The 3 Big Attack Categories -->
+          <div class="theory-grid-3">
+            
+            <div class="theory-subcard">
+              <div class="subcard-header">
+                <span class="subcard-icon">1️⃣</span>
+                <h4>Tautology Attacks</h4>
+              </div>
+              <p>
+                A tautology is a mathematical statement that is <strong>always true</strong> (like <code>1=1</code> or <code>'a'='a'</code>).
+              </p>
+              <div class="example-box">
+                <code>' OR '1'='1</code>
+              </div>
+              <p class="small text-muted">
+                <strong>Why it works:</strong> In boolean logic, <code>FALSE OR TRUE</code> evaluates to <code>TRUE</code>. Every row in the table satisfies the condition, bypassing authentication or leaking all records.
+              </p>
+            </div>
+
+            <div class="theory-subcard">
+              <div class="subcard-header">
+                <span class="subcard-icon">2️⃣</span>
+                <h4>Comment Truncation</h4>
+              </div>
+              <p>
+                SQL provides comment delimiters (<code>--</code> for line comments, <code>/* */</code> for block comments).
+              </p>
+              <div class="example-box">
+                <code>admin' --</code>
+              </div>
+              <p class="small text-muted">
+                <strong>Why it works:</strong> Everything after <code>--</code> is discarded by the SQL compiler. The <code>AND password = '...'</code> clause vanishes entirely, logging the attacker in as the target without needing the password!
+              </p>
+            </div>
+
+            <div class="theory-subcard">
+              <div class="subcard-header">
+                <span class="subcard-icon">3️⃣</span>
+                <h4>UNION Data Exfiltration</h4>
+              </div>
+              <p>
+                The <code>UNION</code> operator merges rows from two separate SELECT queries into a single combined output set.
+              </p>
+              <div class="example-box">
+                <code>' UNION SELECT id, username, password FROM users --</code>
+              </div>
+              <p class="small text-muted">
+                <strong>Why it works:</strong> An attacker exploits an innocent search box to retrieve passwords, credit cards, or internal API tokens that they do not have authorization to see.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Why Parameterized Queries Are the Definitive Fix -->
+          <div class="theory-card fix-card">
+            <div class="fix-header">
+              <span class="fix-icon">🛡️</span>
+              <div>
+                <h3>The Definitive Solution: Parameterized Queries (Prepared Statements)</h3>
+                <p>Why Prepared Statements are mathematically immune to SQL injection</p>
+              </div>
+            </div>
+
+            <div class="comparison-grid">
+              <div class="compare-box bad-box">
+                <h4>❌ Dangerous: Dynamic Concatenation</h4>
+                <pre><code>// The query string and user data are parsed together in one step:
+String sql = "SELECT * FROM users WHERE user = '" + input + "'";
+// If input = "admin' --", the SQL parser sees new commands!</code></pre>
+                <ul>
+                  <li>Input can alter the Abstract Syntax Tree (AST).</li>
+                  <li>Data masquerades as executable commands.</li>
+                  <li>Blacklist filtering (replacing quotes) is easily bypassed.</li>
+                </ul>
+              </div>
+
+              <div class="compare-box good-box">
+                <h4>✅ Safe: Prepared Statement (Placeholders)</h4>
+                <pre><code>// 1. Database compiles query structure FIRST:
+PreparedStatement stmt = conn.prepareStatement(
+    "SELECT * FROM users WHERE user = ? AND pass = ?"
+);
+// 2. Data is bound separately as pure literals:
+stmt.setString(1, input);
+stmt.setString(2, password);</code></pre>
+                <ul>
+                  <li>The SQL query AST is compiled <strong>before</strong> receiving data.</li>
+                  <li>Placeholders <code>?</code> can ONLY hold data values, never syntax.</li>
+                  <li>Even if input is <code>' OR '1'='1</code>, the DB searches for a user whose literal name is <code>' OR '1'='1</code>!</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 5: CTF CHALLENGE MISSIONS -->
+      <!-- ========================================== -->
+      <section id="tab-challenges" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>
+                <span class="panel-icon">🎯</span>
+                Hands-On Security Missions (CTF)
+              </h2>
+              <p class="panel-desc">
+                Put your knowledge into practice! Complete each objective using the interactive labs. Your progress is saved automatically.
+              </p>
+            </div>
+            <div class="progress-container">
+              <span class="progress-text">Missions Completed: <strong id="missionsCompletedText">0 / 4</strong></span>
+              <div class="progress-bar-wrap">
+                <div id="missionsProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="allMissionsCompletedBanner" class="celebration-banner hidden">
+            <div class="celebration-icon">🏆</div>
+            <div>
+              <h3>Mastery Achieved! All 4 Missions Completed!</h3>
+              <p>You have demonstrated practical mastery of authentication bypass, comment truncation, UNION data exfiltration, and prepared statement defense.</p>
+            </div>
+          </div>
+
+          <div class="missions-list">
+            
+            <!-- Mission 1 -->
+            <div id="mission1Card" class="mission-card">
+              <div class="mission-status-icon">○</div>
+              <div class="mission-content">
+                <div class="mission-meta">
+                  <span class="badge badge-accent">Mission 1: The Gatecrasher</span>
+                  <span class="badge badge-subtle">Difficulty: Easy</span>
+                </div>
+                <h3>Bypass Login Without Knowing Any Password</h3>
+                <p>
+                  Use a <strong>Tautology payload</strong> in the Auth Bypass Lab so the database WHERE clause evaluates to TRUE unconditionally. Successfully log in as any user.
+                </p>
+                <div class="mission-hint">
+                  <strong>💡 Hint:</strong> Try typing <code>' OR '1'='1</code> into the username field with any password.
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.App.jumpToMission(1)">Go to Lab</button>
+            </div>
+
+            <!-- Mission 2 -->
+            <div id="mission2Card" class="mission-card">
+              <div class="mission-status-icon">○</div>
+              <div class="mission-content">
+                <div class="mission-meta">
+                  <span class="badge badge-accent">Mission 2: Targeted Impersonation</span>
+                  <span class="badge badge-subtle">Difficulty: Medium</span>
+                </div>
+                <h3>Hijack the Specific 'admin' Account Using SQL Comments</h3>
+                <p>
+                  Log into the application specifically as the user <code>admin</code> by using SQL comment characters (<code>--</code>) to truncate the password verification.
+                </p>
+                <div class="mission-hint">
+                  <strong>💡 Hint:</strong> Enter <code>admin' --</code> as the username with an incorrect password.
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.App.jumpToMission(2)">Go to Lab</button>
+            </div>
+
+            <!-- Mission 3 -->
+            <div id="mission3Card" class="mission-card">
+              <div class="mission-status-icon">○</div>
+              <div class="mission-content">
+                <div class="mission-meta">
+                  <span class="badge badge-accent">Mission 3: The Secret Vault Exfiltration</span>
+                  <span class="badge badge-subtle">Difficulty: Hard</span>
+                </div>
+                <h3>Exfiltrate Sensitive Passwords or Secrets via UNION</h3>
+                <p>
+                  Head to the <strong>UNION Exfiltration Lab</strong> and inject a <code>UNION SELECT</code> payload to leak confidential database passwords or encryption keys right into the search results table.
+                </p>
+                <div class="mission-hint">
+                  <strong>💡 Hint:</strong> Use the search bar to query <code>' UNION SELECT id, username, password, email, role, secret_data FROM users --</code>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.App.jumpToMission(3)">Go to Lab</button>
+            </div>
+
+            <!-- Mission 4 -->
+            <div id="mission4Card" class="mission-card">
+              <div class="mission-status-icon">○</div>
+              <div class="mission-content">
+                <div class="mission-meta">
+                  <span class="badge badge-accent">Mission 4: The Iron Fortress</span>
+                  <span class="badge badge-subtle">Difficulty: Medium</span>
+                </div>
+                <h3>Activate Secure Mode & Verify the Prepared Statement Defense</h3>
+                <p>
+                  Switch the engine to <strong>🛡️ Secure (Prepared)</strong> mode at the top right, attempt an attack payload (like <code>' OR '1'='1</code>), and observe how prepared statements neutralize the injection!
+                </p>
+                <div class="mission-hint">
+                  <strong>💡 Hint:</strong> Toggle the top mode switch to "Secure (Prepared)" and run an injection payload.
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="window.App.jumpToMission(4)">Go to Lab</button>
+            </div>
+
+          </div>
+
+          <div class="mt-4 text-right">
+            <button id="resetMissionsBtn" class="btn btn-secondary btn-sm">Reset Mission Progress</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- TAB 6: DEFENSE & CODE FIXES -->
+      <!-- ========================================== -->
+      <section id="tab-defense" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>
+                <span class="panel-icon">💻</span>
+                Remediation Code: How to Fix SQLi in Every Major Language
+              </h2>
+              <p class="panel-desc">
+                Review production-ready code examples comparing vulnerable string concatenation against safe parameterized implementations across languages.
+              </p>
+            </div>
+          </div>
+
+          <!-- Code Language Switcher -->
+          <div class="code-lang-tabs">
+            <button class="lang-tab active" data-lang="python">Python</button>
+            <button class="lang-tab" data-lang="nodejs">Node.js / Express</button>
+            <button class="lang-tab" data-lang="php">PHP (PDO)</button>
+            <button class="lang-tab" data-lang="java">Java (JDBC)</button>
+            <button class="lang-tab" data-lang="csharp">C# / .NET</button>
+            <button class="lang-tab" data-lang="go">Go</button>
+          </div>
+
+          <div class="code-snippets-container">
+            
+            <!-- Python -->
+            <div id="snippet-python" class="snippet-pane active">
+              <div class="side-by-side-code">
+                <div class="code-col bad">
+                  <div class="col-title">❌ Vulnerable Python Code (String Formatting / F-Strings)</div>
+                  <pre><code># VULNERABLE: Direct f-string interpolation
+import sqlite3
+
+def login_vulnerable(username, password):
+    conn = sqlite3.connect("production.db")
+    cursor = conn.cursor()
+    
+    # DANGER: Attacker input directly combined with SQL command!
+    sql = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+    
+    cursor.execute(sql)  # Attacker's quotes alter query structure!
+    return cursor.fetchone()</code></pre>
+                </div>
+                <div class="code-col good">
+                  <div class="col-title">✅ Secure Python Code (Parameterized Placeholders)</div>
+                  <pre><code># SECURE: Using '?' placeholders with tuple of parameters
+import sqlite3
+
+def login_secure(username, password):
+    conn = sqlite3.connect("production.db")
+    cursor = conn.cursor()
+    
+    # SAFE: SQL structure is static. Placeholders separate code from data.
+    sql = "SELECT * FROM users WHERE username = ? AND password = ?"
+    
+    # Database driver binds variables as literal strings safely
+    cursor.execute(sql, (username, password))
+    return cursor.fetchone()</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Node.js -->
+            <div id="snippet-nodejs" class="snippet-pane">
+              <div class="side-by-side-code">
+                <div class="code-col bad">
+                  <div class="col-title">❌ Vulnerable Node.js Code (Template Literals)</div>
+                  <pre><code>// VULNERABLE: Direct template literal concatenation
+const express = require('express');
+const { Client } = require('pg');
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  // DANGER: Injected quotes break out of string literal!
+  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+  
+  const result = await db.query(query);
+  res.json({ user: result.rows[0] });
+});</code></pre>
+                </div>
+                <div class="code-col good">
+                  <div class="col-title">✅ Secure Node.js Code (Parameterized Query `$1, $2`)</div>
+                  <pre><code>// SECURE: PostgreSQL parameterized query using $1, $2 placeholders
+const express = require('express');
+const { Client } = require('pg');
+
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  // SAFE: Database treats params array strictly as literal values
+  const query = 'SELECT * FROM users WHERE username = $1 AND password = $2';
+  
+  const result = await db.query(query, [username, password]);
+  res.json({ user: result.rows[0] });
+});</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- PHP -->
+            <div id="snippet-php" class="snippet-pane">
+              <div class="side-by-side-code">
+                <div class="code-col bad">
+                  <div class="col-title">❌ Vulnerable PHP Code</div>
+                  <pre><code>// VULNERABLE: Direct variable interpolation into query
+$user = $_POST['username'];
+$pass = $_POST['password'];
+
+// DANGER: Attacker alters query logic
+$sql = "SELECT * FROM users WHERE username = '$user' AND password = '$pass'";
+$result = $pdo->query($sql);</code></pre>
+                </div>
+                <div class="code-col good">
+                  <div class="col-title">✅ Secure PHP Code (PDO Prepared Statements)</div>
+                  <pre><code>// SECURE: PDO Prepared Statement with named or positional parameters
+$user = $_POST['username'];
+$pass = $_POST['password'];
+
+$stmt = $pdo->prepare('SELECT * FROM users WHERE username = :user AND password = :pass');
+$stmt->execute([
+    'user' => $user,
+    'pass' => $pass
+]);
+$user = $stmt->fetch();</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Java -->
+            <div id="snippet-java" class="snippet-pane">
+              <div class="side-by-side-code">
+                <div class="code-col bad">
+                  <div class="col-title">❌ Vulnerable Java Code (Statement Concatenation)</div>
+                  <pre><code>// VULNERABLE: Using java.sql.Statement with string concatenation
+Statement statement = connection.createStatement();
+String sql = "SELECT * FROM users WHERE username = '" 
+             + username + "' AND password = '" + password + "'";
+ResultSet rs = statement.executeQuery(sql); // Flawed!</code></pre>
+                </div>
+                <div class="code-col good">
+                  <div class="col-title">✅ Secure Java Code (PreparedStatement)</div>
+                  <pre><code>// SECURE: Using java.sql.PreparedStatement
+String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+PreparedStatement ps = connection.prepareStatement(sql);
+ps.setString(1, username);
+ps.setString(2, password);
+ResultSet rs = ps.executeQuery(); // Completely immune to SQLi!</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- C# -->
+            <div id="snippet-csharp" class="snippet-pane">
+              <div class="side-by-side-code">
+                <div class="code-col bad">
+                  <div class="col-title">❌ Vulnerable C# Code (String Interpolation)</div>
+                  <pre><code>// VULNERABLE: String interpolation with SqlCommand
+string sql = $"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'";
+SqlCommand cmd = new SqlCommand(sql, conn);
+SqlDataReader reader = cmd.ExecuteReader();</code></pre>
+                </div>
+                <div class="code-col good">
+                  <div class="col-title">✅ Secure C# Code (SqlParameter Collection)</div>
+                  <pre><code>// SECURE: Using Parameters.AddWithValue or SqlParameter
+string sql = "SELECT * FROM users WHERE username = @Username AND password = @Password";
+SqlCommand cmd = new SqlCommand(sql, conn);
+cmd.Parameters.Add("@Username", SqlDbType.VarChar, 50).Value = username;
+cmd.Parameters.Add("@Password", SqlDbType.VarChar, 100).Value = password;
+SqlDataReader reader = cmd.ExecuteReader();</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <!-- Go -->
+            <div id="snippet-go" class="snippet-pane">
+              <div class="side-by-side-code">
+                <div class="code-col bad">
+                  <div class="col-title">❌ Vulnerable Go Code (fmt.Sprintf)</div>
+                  <pre><code>// VULNERABLE: fmt.Sprintf query generation
+query := fmt.Sprintf("SELECT * FROM users WHERE username = '%s' AND password = '%s'", username, password)
+row := db.QueryRow(query) // Injected characters execute as SQL!</code></pre>
+                </div>
+                <div class="code-col good">
+                  <div class="col-title">✅ Secure Go Code (database/sql parameter binding)</div>
+                  <pre><code>// SECURE: database/sql QueryRow parameter binding
+query := "SELECT * FROM users WHERE username = ? AND password = ?"
+row := db.QueryRow(query, username, password) // Safe parameter binding</code></pre>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Defense in Depth Principles -->
+          <div class="defense-principles mt-6">
+            <h3>🛡️ Defense-in-Depth Principles</h3>
+            <div class="principles-grid">
+              <div class="principle-card">
+                <div class="principle-num">1</div>
+                <h4>Prepared Statements First</h4>
+                <p>Parameterized queries are the primary, non-negotiable defense. Never rely on manual escaping or regular expressions as your primary barrier.</p>
+              </div>
+              <div class="principle-card">
+                <div class="principle-num">2</div>
+                <h4>Principle of Least Privilege</h4>
+                <p>Ensure your web app database user has only minimum required permissions (e.g. read/write to specific tables, no DROP TABLE or administrative rights).</p>
+              </div>
+              <div class="principle-card">
+                <div class="principle-num">3</div>
+                <h4>Hash Passwords Securely</h4>
+                <p>Never store plaintext passwords in a production database. Always use modern salted hashing algorithms like Argon2id or bcrypt.</p>
+              </div>
+              <div class="principle-card">
+                <div class="principle-num">4</div>
+                <h4>Input Validation (Allowlists)</h4>
+                <p>Validate that usernames conform to alphanumeric character sets and reasonable length limits before sending them to any database layer.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>SQLi-Lab</strong> — Educational SQL Injection Demonstration Sandbox &amp; Interactive Guide
+      </div>
+      <div>
+        Designed for safe local cybersecurity learning &bull; Built with HTML5, CSS3 &amp; Vanilla JavaScript
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="sql-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

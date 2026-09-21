@@ -11,6 +11,7 @@ Each project is designed to be completely modular and housed in its own independ
 | Folder | Project | Tech Stack | Description |
 |---|---|---|---|
 | [**`sorting-visualizer/`**](./sorting-visualizer/) | **SortLab: Sorting Visualizer** | HTML5, CSS3, JavaScript, Nginx/Docker | Interactive step-by-step visual explorer for Bubble Sort and Selection Sort with side-by-side comparison mode. |
+| [**`sql-injection-explainer/`**](./sql-injection-explainer/) | **SQLi-Lab: SQL Injection Explainer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive sandbox demonstrating SQL injection vulnerabilities, 10 users & passwords database, AST visualizer, and prepared statement defenses. |
 
 ---
 
@@ -29,7 +30,17 @@ hobby_projects/
 │   ├── nginx.conf
 │   └── README.md
 │
-├── [future-app-name]/        # App 2 (Add new apps in separate folders)
+├── sql-injection-explainer/  # App 2: SQL Injection Interactive Sandbox & Explainer
+│   ├── index.html
+│   ├── style.css
+│   ├── sql-engine.js
+│   ├── app.js
+│   ├── server.py
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── README.md
+│
+├── [future-app-name]/        # App 3 (Add new apps in separate folders)
 └── ...
 ```
 
