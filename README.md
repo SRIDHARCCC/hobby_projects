@@ -13,6 +13,8 @@ Each project is designed to be completely modular and housed in its own independ
 | [**`sorting-visualizer/`**](./sorting-visualizer/) | **SortLab: Sorting Visualizer** | HTML5, CSS3, JavaScript, Nginx/Docker | Interactive step-by-step visual explorer for Bubble Sort and Selection Sort with side-by-side comparison mode. |
 | [**`sql-injection-explainer/`**](./sql-injection-explainer/) | **SQLi-Lab: SQL Injection Explainer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive sandbox demonstrating SQL injection vulnerabilities, 10 users & passwords database, AST visualizer, and prepared statement defenses. |
 
+| [**`trigonometry-visualizer/`**](./trigonometry-visualizer/) | **TrigLab: Interactive Trigonometry & Unit Circle Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive visualizer explaining Sine, Cosine, Tangent, Cosecant, Secant, and Cotangent across 0°-360° with dynamic unit circle projections, wave graphs, and geometric proofs |
+
 ---
 
 ## 🛠 Repository Architecture
@@ -40,7 +42,18 @@ hobby_projects/
 │   ├── nginx.conf
 │   └── README.md
 │
-├── [future-app-name]/        # App 3 (Add new apps in separate folders)
+├── trigonometry-visualizer/  # App 3: Interactive Trigonometry & Unit Circle Visualizer
+│   ├── index.html
+│   ├── style.css
+│   ├── trig-engine.js
+│   ├── app.js
+│   ├── server.py
+│   ├── test_app.js
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── README.md
+│
+├── [future-app-name]/        # App 4 (Add new apps in separate folders)
 └── ...
 ```
 

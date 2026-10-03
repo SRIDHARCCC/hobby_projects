@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrigLab: Interactive Trigonometry & Unit Circle Visualizer | Hobby Projects</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <!-- Compass / Angle Icon -->
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="12 2 15 9 12 12 9 9 12 2" fill="rgba(56, 189, 248, 0.4)"></polygon>
+            <polygon points="12 22 9 15 12 12 15 15 12 22" fill="rgba(245, 158, 11, 0.4)"></polygon>
+            <circle cx="12" cy="12" r="2" fill="currentColor"></circle>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>TrigLab: Trigonometry & Unit Circle Visualizer</h1>
+            <span class="badge badge-accent">Interactive Lab</span>
+            <span class="badge badge-cyan">0° – 360° Explorer</span>
+            <span class="badge badge-green">All 6 Trig Functions</span>
+          </div>
+          <p class="subtitle">
+            Explore Sine, Cosine, Tangent, Cosecant, Secant, and Cotangent across 360°.
+            Designed for teachers and students to understand <em>why</em> sin(90°) = 1, cos(90°) = 0, and tan(90°) = ∞!
+          </p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="btnAutoPlay" class="btn btn-primary btn-sm" title="Toggle automatic rotation">
+          <span class="btn-icon">▶</span>
+          <span id="playBtnText">Auto Play</span>
+        </button>
+        <button id="btnResetAngle" class="btn btn-secondary btn-sm" title="Reset angle to 0°">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Reset (0°)
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-explorer">
+        <span>🎮 Interactive Explorer</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-teacher">
+        <span>👨‍🏫 Teacher's Guide & Proofs</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-quiz">
+        <span>🎯 Student Quiz & Practice</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-cheatsheet">
+        <span>📐 360° Value Cheat Sheet</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <!-- ====================================================================
+           TAB 1: INTERACTIVE EXPLORER
+           ==================================================================== -->
+      <section id="tab-explorer" class="tab-pane active">
+
+        <!-- Master Angle Toolbar -->
+        <div class="panel toolbar-panel">
+          <div class="angle-control-group">
+            <div class="angle-header-row">
+              <label for="angleSlider" class="control-label">
+                Angle (θ):
+                <span id="displayAngleDeg" class="angle-display-deg">90°</span>
+                <span id="displayAngleRad" class="badge badge-subtle">π/2 rad (1.571)</span>
+                <span id="displayQuadrant" class="badge badge-quadrant">Positive Y-Axis</span>
+              </label>
+
+              <div class="speed-control-group">
+                <span class="control-sublabel">Speed:</span>
+                <button class="chip speed-chip" data-speed="0.5">0.5x</button>
+                <button class="chip speed-chip active" data-speed="1.0">1x</button>
+                <button class="chip speed-chip" data-speed="2.0">2x</button>
+              </div>
+            </div>
+
+            <!-- Main Range Slider -->
+            <div class="slider-row">
+              <button id="btnStepPrev" class="btn btn-secondary btn-sm" title="Step -15°">◀ -15°</button>
+              <input type="range" id="angleSlider" min="0" max="360" step="1" value="90" class="angle-slider" aria-label="Angle in degrees">
+              <button id="btnStepNext" class="btn btn-secondary btn-sm" title="Step +15°">+15° ▶</button>
+            </div>
+
+            <!-- Benchmark Preset Chips -->
+            <div class="presets-row">
+              <span class="preset-label">Special Angles:</span>
+              <div class="preset-chips">
+                <button class="chip angle-chip" data-deg="0">0°</button>
+                <button class="chip angle-chip" data-deg="30">30° (π/6)</button>
+                <button class="chip angle-chip" data-deg="45">45° (π/4)</button>
+                <button class="chip angle-chip" data-deg="60">60° (π/3)</button>
+                <button class="chip angle-chip active" data-deg="90">90° (π/2)</button>
+                <button class="chip angle-chip" data-deg="120">120° (2π/3)</button>
+                <button class="chip angle-chip" data-deg="135">135° (3π/4)</button>
+                <button class="chip angle-chip" data-deg="150">150° (5π/6)</button>
+                <button class="chip angle-chip" data-deg="180">180° (π)</button>
+                <button class="chip angle-chip" data-deg="210">210° (7π/6)</button>
+                <button class="chip angle-chip" data-deg="225">225° (5π/4)</button>
+                <button class="chip angle-chip" data-deg="270">270° (3π/2)</button>
+                <button class="chip angle-chip" data-deg="300">300° (5π/3)</button>
+                <button class="chip angle-chip" data-deg="315">315° (7π/4)</button>
+                <button class="chip angle-chip" data-deg="360">360° (2π)</button>
+              </div>
+            </div>
+
+            <!-- Quick Teacher Classroom Explainer Prompts -->
+            <div class="teacher-quick-row">
+              <span class="preset-label">Teaching Jump:</span>
+              <button class="quick-teach-btn" data-teach="sin-90">
+                ⚡ Why is sin(90°) = 1?
+              </button>
+              <button class="quick-teach-btn" data-teach="cos-90">
+                ⚡ Why is cos(90°) = 0?
+              </button>
+              <button class="quick-teach-btn" data-teach="tan-90">
+                ⚡ Why is tan(90°) = Undefined / ∞?
+              </button>
+              <button class="quick-teach-btn" data-teach="astc-rule">
+                ⚡ ASTC Signs in 4 Quadrants
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Visualizers Dual Grid -->
+        <div class="visualizers-grid">
+
+          <!-- Left Card: Unit Circle Projection -->
+          <div class="panel card-visualizer">
+            <div class="panel-header flex-between">
+              <div>
+                <h2>Unit Circle Projection ($r = 1$)</h2>
+                <p class="panel-caption">Drag the orange handle or use the angle slider. Coordinates are $(x, y) = (\cos\theta, \sin\theta)$.</p>
+              </div>
+              <div class="unit-circle-legend">
+                <span class="legend-badge cos-badge">cos (x)</span>
+                <span class="legend-badge sin-badge">sin (y)</span>
+                <span class="legend-badge tan-badge">tan</span>
+              </div>
+            </div>
+
+            <div class="canvas-wrapper">
+              <canvas id="circleCanvas" width="560" height="560"></canvas>
+            </div>
+
+            <!-- Projection Toggles -->
+            <div class="toggles-toolbar">
+              <label class="toggle-item">
+                <input type="checkbox" id="chkTriangle" checked>
+                <span class="custom-checkbox"></span>
+                <span>Right Triangle</span>
+              </label>
+              <label class="toggle-item">
+                <input type="checkbox" id="chkSinCos" checked>
+                <span class="custom-checkbox"></span>
+                <span>Sine & Cosine</span>
+              </label>
+              <label class="toggle-item">
+                <input type="checkbox" id="chkTanLine" checked>
+                <span class="custom-checkbox"></span>
+                <span>Tangent Line ($x=1$)</span>
+              </label>
+              <label class="toggle-item">
+                <input type="checkbox" id="chkReciprocals">
+                <span class="custom-checkbox"></span>
+                <span>Reciprocals (Sec/Csc/Cot)</span>
+              </label>
+              <label class="toggle-item">
+                <input type="checkbox" id="chkQuadrantLabels" checked>
+                <span class="custom-checkbox"></span>
+                <span>Quadrant Signs (ASTC)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Right Card: Wave Graph Representation -->
+          <div class="panel card-visualizer">
+            <div class="panel-header flex-between">
+              <div>
+                <h2>Wave Graph Representation (0° – 360°)</h2>
+                <p class="panel-caption">Continuous curves mapped over degrees & radians. Pulsing tracer dot marks current angle.</p>
+              </div>
+              <div class="wave-legend-filters" id="waveFilterGroup">
+                <button class="curve-toggle active" data-curve="sin" style="--curve-color: #10b981;">sin(θ)</button>
+                <button class="curve-toggle active" data-curve="cos" style="--curve-color: #38bdf8;">cos(θ)</button>
+                <button class="curve-toggle active" data-curve="tan" style="--curve-color: #f59e0b;">tan(θ)</button>
+                <button class="curve-toggle" data-curve="csc" style="--curve-color: #ec4899;">csc(θ)</button>
+                <button class="curve-toggle" data-curve="sec" style="--curve-color: #a855f7;">sec(θ)</button>
+                <button class="curve-toggle" data-curve="cot" style="--curve-color: #14b8a6;">cot(θ)</button>
+              </div>
+            </div>
+
+            <div class="canvas-wrapper">
+              <canvas id="waveCanvas" width="640" height="560"></canvas>
+            </div>
+
+            <!-- Wave Graph Hints -->
+            <div class="wave-hints-bar">
+              <span class="hint-item"><span class="asymptote-indicator"></span> Dashed Red = Vertical Asymptotes (Undefined / ±∞ at 90°, 270°)</span>
+              <span class="hint-item"><span class="tracer-indicator"></span> Moving Dot = Real-Time Value</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Real-Time Dynamic Insight Callout -->
+        <div class="panel insight-panel" id="insightBox">
+          <div class="insight-icon">💡</div>
+          <div class="insight-content" id="insightContent">
+            <strong>Angle Insight:</strong> Loading explanation...
+          </div>
+        </div>
+
+        <!-- 6 Trigonometric Functions Live Cards Grid -->
+        <div class="functions-grid mt-4">
+
+          <!-- Sine Card -->
+          <div class="func-card card-sin" id="card-sin">
+            <div class="func-card-header">
+              <div class="func-title">
+                <span class="func-dot dot-sin"></span>
+                <h3>Sine (sin)</h3>
+              </div>
+              <span class="func-sign-badge" id="sign-sin">+</span>
+            </div>
+            <div class="func-val-row">
+              <div class="func-exact" id="exact-sin">1</div>
+              <div class="func-decimal" id="dec-sin">1.0000</div>
+            </div>
+            <div class="func-formula">Opposite / Hypotenuse = y / r</div>
+            <div class="func-unit-role">Vertical projection height on unit circle</div>
+          </div>
+
+          <!-- Cosine Card -->
+          <div class="func-card card-cos" id="card-cos">
+            <div class="func-card-header">
+              <div class="func-title">
+                <span class="func-dot dot-cos"></span>
+                <h3>Cosine (cos)</h3>
+              </div>
+              <span class="func-sign-badge" id="sign-cos">0</span>
+            </div>
+            <div class="func-val-row">
+              <div class="func-exact" id="exact-cos">0</div>
+              <div class="func-decimal" id="dec-cos">0.0000</div>
+            </div>
+            <div class="func-formula">Adjacent / Hypotenuse = x / r</div>
+            <div class="func-unit-role">Horizontal base projection on unit circle</div>
+          </div>
+
+          <!-- Tangent Card -->
+          <div class="func-card card-tan" id="card-tan">
+            <div class="func-card-header">
+              <div class="func-title">
+                <span class="func-dot dot-tan"></span>
+                <h3>Tangent (tan)</h3>
+              </div>
+              <span class="func-sign-badge badge-undef" id="sign-tan">Undefined</span>
+            </div>
+            <div class="func-val-row">
+              <div class="func-exact alert-undef" id="exact-tan">Undefined (±∞)</div>
+              <div class="func-decimal" id="dec-tan">Asymptote</div>
+            </div>
+            <div class="func-formula">Opposite / Adjacent = sin / cos = y / x</div>
+            <div class="func-unit-role">Vertical cut on tangent line $x = 1$</div>
+          </div>
+
+          <!-- Cosecant Card -->
+          <div class="func-card card-csc" id="card-csc">
+            <div class="func-card-header">
+              <div class="func-title">
+                <span class="func-dot dot-csc"></span>
+                <h3>Cosecant (cosec)</h3>
+              </div>
+              <span class="func-sign-badge" id="sign-csc">+</span>
+            </div>
+            <div class="func-val-row">
+              <div class="func-exact" id="exact-csc">1</div>
+              <div class="func-decimal" id="dec-csc">1.0000</div>
+            </div>
+            <div class="func-formula">Reciprocal: 1 / sin(θ) = Hyp / Opp</div>
+            <div class="func-unit-role">Y-intercept of tangent line to circle</div>
+          </div>
+
+          <!-- Secant Card -->
+          <div class="func-card card-sec" id="card-sec">
+            <div class="func-card-header">
+              <div class="func-title">
+                <span class="func-dot dot-sec"></span>
+                <h3>Secant (sec)</h3>
+              </div>
+              <span class="func-sign-badge badge-undef" id="sign-sec">Undefined</span>
+            </div>
+            <div class="func-val-row">
+              <div class="func-exact alert-undef" id="exact-sec">Undefined (±∞)</div>
+              <div class="func-decimal" id="dec-sec">Asymptote</div>
+            </div>
+            <div class="func-formula">Reciprocal: 1 / cos(θ) = Hyp / Adj</div>
+            <div class="func-unit-role">X-intercept of tangent line to circle</div>
+          </div>
+
+          <!-- Cotangent Card -->
+          <div class="func-card card-cot" id="card-cot">
+            <div class="func-card-header">
+              <div class="func-title">
+                <span class="func-dot dot-cot"></span>
+                <h3>Cotangent (cot)</h3>
+              </div>
+              <span class="func-sign-badge" id="sign-cot">0</span>
+            </div>
+            <div class="func-val-row">
+              <div class="func-exact" id="exact-cot">0</div>
+              <div class="func-decimal" id="dec-cot">0.0000</div>
+            </div>
+            <div class="func-formula">Reciprocal: 1 / tan(θ) = cos / sin</div>
+            <div class="func-unit-role">Horizontal cut on tangent line $y = 1$</div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           TAB 2: TEACHER'S GUIDE & PROOFS
+           ==================================================================== -->
+      <section id="tab-teacher" class="tab-pane">
+        <div class="teacher-layout">
+
+          <!-- Left Topic Navigation Menu -->
+          <div class="panel teacher-sidebar">
+            <h3 class="sidebar-title">Core Classroom Proofs</h3>
+            <p class="sidebar-subtitle">Select a topic to read the geometric breakdown and load the interactive demonstration:</p>
+            <div class="topic-menu" id="topicMenuContainer">
+              <!-- Dynamically populated from TrigEngine.TEACHER_TOPICS -->
+            </div>
+          </div>
+
+          <!-- Right Proof Detail Viewer -->
+          <div class="panel teacher-content-panel">
+            <div class="detail-header flex-between">
+              <div>
+                <h2 id="teacherDetailTitle">Why is sin(90°) = 1?</h2>
+                <span class="badge badge-accent" id="teacherDetailAngleBadge">Target Angle: 90° (π/2)</span>
+              </div>
+              <button id="btnDemonstrateTopic" class="btn btn-primary">
+                <span>🎯 View on Live Explorer</span>
+              </button>
+            </div>
+
+            <div class="proof-body" id="teacherDetailBody">
+              <!-- Dynamically rendered proof content -->
+            </div>
+
+            <!-- Visual Proof Summary Diagram Card -->
+            <div class="proof-card-highlight mt-4" id="teacherProofSummary">
+              <!-- Summary breakdown -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           TAB 3: STUDENT QUIZ & PRACTICE
+           ==================================================================== -->
+      <section id="tab-quiz" class="tab-pane">
+        <div class="panel quiz-container">
+          <div class="quiz-header">
+            <div>
+              <h2>Interactive Student Challenge: Test Your Trigonometry Intuition</h2>
+              <p class="text-muted">Answer questions designed to solidify your understanding of 90°, 0°, asymptotes, and quadrants.</p>
+            </div>
+            <div class="quiz-score-badge" id="quizScoreBadge">
+              Score: <span id="quizScoreNum">0</span> / <span id="quizTotalNum">6</span>
+            </div>
+          </div>
+
+          <div class="quiz-cards-list" id="quizCardsList">
+            <!-- Dynamically populated questions -->
+          </div>
+
+          <div class="quiz-actions-row">
+            <button id="btnResetQuiz" class="btn btn-secondary">↺ Reset Quiz</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           TAB 4: 360° VALUE CHEAT SHEET
+           ==================================================================== -->
+      <section id="tab-cheatsheet" class="tab-pane">
+        <div class="panel">
+          <div class="panel-header flex-between">
+            <div>
+              <h2>360° Special Angles Reference Table</h2>
+              <p class="text-muted">Exact radical values and reciprocal relationships for all standard angles across all 4 quadrants.</p>
+            </div>
+            <div class="astc-pill-summary">
+              <span class="badge badge-cyan">Q1: ALL (+)</span>
+              <span class="badge badge-green">Q2: SIN, CSC (+)</span>
+              <span class="badge badge-amber">Q3: TAN, COT (+)</span>
+              <span class="badge badge-purple">Q4: COS, SEC (+)</span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="cheatsheet-table" id="cheatsheetTable">
+              <thead>
+                <tr>
+                  <th>Degrees</th>
+                  <th>Radians</th>
+                  <th>Quadrant</th>
+                  <th>sin(θ)</th>
+                  <th>cos(θ)</th>
+                  <th>tan(θ)</th>
+                  <th>csc(θ)</th>
+                  <th>sec(θ)</th>
+                  <th>cot(θ)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="cheatsheetTbody">
+                <!-- Dynamically populated from TrigEngine.EXACT_BENCHMARKS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="identities-grid mt-4">
+            <div class="identity-box">
+              <h4>Pythagorean Identities</h4>
+              <code>sin²(θ) + cos²(θ) = 1</code>
+              <code>1 + tan²(θ) = sec²(θ)</code>
+              <code>1 + cot²(θ) = csc²(θ)</code>
+            </div>
+            <div class="identity-box">
+              <h4>Reciprocal Identities</h4>
+              <code>csc(θ) = 1 / sin(θ)</code>
+              <code>sec(θ) = 1 / cos(θ)</code>
+              <code>cot(θ) = 1 / tan(θ) = cos(θ) / sin(θ)</code>
+            </div>
+            <div class="identity-box">
+              <h4>Quotient & Asymptotes</h4>
+              <code>tan(θ) = sin(θ) / cos(θ) (Asymptotes at 90°, 270°)</code>
+              <code>cot(θ) = cos(θ) / sin(θ) (Asymptotes at 0°, 180°, 360°)</code>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>TrigLab</strong> &bull; Interactive Trigonometry & Unit Circle Visualizer &bull; Part of Hobby Projects Collection
+      </div>
+      <div>
+        Zero-dependency Vanilla Web Architecture &bull; Built for Interactive Teaching & Intuition
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="trig-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

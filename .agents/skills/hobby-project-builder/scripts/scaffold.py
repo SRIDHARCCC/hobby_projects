@@ -535,7 +535,7 @@ requiredFiles.forEach(file => {
     console.error(`✗ Missing or empty file: ${{file}}`);
     allPassed = false;
   } else {
-    console.log(`✓ Verified ${{file}} (${{fs.statSync(p).size}} bytes)`);
+    console.log(`✓ Verified ${file} (${fs.statSync(p).size} bytes)`);
   }
 });
 
@@ -587,15 +587,15 @@ def scaffold(slug, title, description, tech_stack):
     print(f"Created directory: {target_dir}")
 
     files = {
-        'index.html': HTML_TEMPLATE.format(title=title, description=description),
-        'style.css': STYLE_TEMPLATE.format(title=title),
-        'app.js': APP_JS_TEMPLATE.format(title=title),
-        'server.py': SERVER_PY_TEMPLATE.format(title=title),
+        'index.html': HTML_TEMPLATE.replace('{title}', title).replace('{description}', description),
+        'style.css': STYLE_TEMPLATE.replace('{title}', title),
+        'app.js': APP_JS_TEMPLATE.replace('{title}', title),
+        'server.py': SERVER_PY_TEMPLATE.replace('{title}', title),
         'Dockerfile': DOCKERFILE_TEMPLATE,
         'nginx.conf': NGINX_CONF_TEMPLATE,
         '.dockerignore': DOCKERIGNORE_TEMPLATE,
-        'test_app.js': TEST_APP_TEMPLATE.format(title=title),
-        'README.md': README_TEMPLATE.format(title=title, description=description, slug=slug)
+        'test_app.js': TEST_APP_TEMPLATE.replace('{title}', title),
+        'README.md': README_TEMPLATE.replace('{title}', title).replace('{description}', description).replace('{slug}', slug)
     }
 
     for fname, content in files.items():
