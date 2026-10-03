@@ -12,8 +12,7 @@ Each project is designed to be completely modular and housed in its own independ
 |---|---|---|---|
 | [**`sorting-visualizer/`**](./sorting-visualizer/) | **SortLab: Sorting Visualizer** | HTML5, CSS3, JavaScript, Nginx/Docker | Interactive step-by-step visual explorer for Bubble Sort and Selection Sort with side-by-side comparison mode. |
 | [**`sql-injection-explainer/`**](./sql-injection-explainer/) | **SQLi-Lab: SQL Injection Explainer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive sandbox demonstrating SQL injection vulnerabilities, 10 users & passwords database, AST visualizer, and prepared statement defenses. |
-
-| [**`trigonometry-visualizer/`**](./trigonometry-visualizer/) | **TrigLab: Interactive Trigonometry & Unit Circle Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive visualizer explaining Sine, Cosine, Tangent, Cosecant, Secant, and Cotangent across 0°-360° with dynamic unit circle projections, wave graphs, and geometric proofs |
+| [**`trigonometry-visualizer/`**](./trigonometry-visualizer/) | **TrigLab: Interactive Trigonometry & Unit Circle Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive visualizer explaining Sine, Cosine, Tangent, Cosecant, Secant, and Cotangent across 0°-360° with dynamic unit circle projections, wave graphs, and geometric proofs. |
 
 ---
 

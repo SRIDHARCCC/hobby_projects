@@ -612,8 +612,15 @@ def scaffold(slug, title, description, tech_stack):
 
         table_entry = f"| [**`{slug}/`**](./{slug}/) | **{title}** | {tech_stack} | {description} |\n"
         if f"[**`{slug}/`**]" not in content:
-            # Insert before the closing delimiter of the table or next section
-            content = content.replace("---\n\n## 🛠 Repository Architecture", f"{table_entry}\n---\n\n## 🛠 Repository Architecture")
+            # Insert directly as a new table row without breaking the table with a blank line
+            if re.search(r'(\|\s*\n)\s*\n(---\s*\n\s*## 🛠 Repository Architecture)', content):
+                content = re.sub(
+                    r'(\|\s*\n)\s*\n(---\s*\n\s*## 🛠 Repository Architecture)',
+                    r'\1' + table_entry.replace('\\', '\\\\') + r'\n\2',
+                    content
+                )
+            else:
+                content = content.replace("---\n\n## 🛠 Repository Architecture", f"{table_entry}\n---\n\n## 🛠 Repository Architecture")
             with open(root_readme_path, 'w', encoding='utf-8') as f:
                 f.write(content)
             print(f"  + Registered '{slug}' in root README.md")
