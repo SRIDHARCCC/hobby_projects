@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NumPy Matmul &amp; Dot Product Visualizer | Hobby Projects</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon" title="NumPy Matmul & Dot Product Visualizer">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+            <circle cx="6.5" cy="17.5" r="2.5" fill="currentColor"></circle>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>NumPy Matmul &amp; Dot Product Visualizer</h1>
+            <span class="badge badge-accent">Interactive Visual Guide</span>
+            <span class="badge badge-subtle">A @ B &bull; np.matmul</span>
+          </div>
+          <p class="subtitle">Learn matrix multiplication, vector dot products, and batch broadcasting step-by-step</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="randomValuesBtn" class="btn btn-secondary btn-sm" title="Generate new friendly numbers for the matrices">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Randomize Numbers
+        </button>
+        <button id="resetAppBtn" class="btn btn-secondary btn-sm" title="Reset to standard example">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Reset
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs: Progressive Learning -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="nav-tab active" data-tab="tab-2d" role="tab" aria-selected="true">
+        <span>🟢 Level 1: 2D Matrix &amp; Dot Product</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-batches" role="tab" aria-selected="false">
+        <span>🔵 Level 2: 3D Batches &amp; Broadcasting</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-sandbox" role="tab" aria-selected="false">
+        <span>🛠️ Level 3: Custom Shape Sandbox</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-comparison" role="tab" aria-selected="false">
+        <span>💡 Cheat Sheet: np.dot vs np.matmul (@)</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      
+      <!-- ==================== TAB 1: 2D MATRIX & DOT PRODUCT (LEVEL 1) ==================== -->
+      <section id="tab-2d" class="tab-pane active" role="tabpanel">
+        
+        <!-- Easy Presets Bar -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Select an Example</h2>
+              <span class="badge badge-info">Beginner Friendly</span>
+            </div>
+            <div class="text-muted text-sm">Choose a shape scenario to see how matrices multiply:</div>
+          </div>
+
+          <div class="preset-chips-container">
+            <span class="preset-group-title">Standard:</span>
+            <button class="preset-chip active" data-shape-a="2, 3" data-shape-b="3, 2">Rectangular (2×3) @ (3×2) &rarr; (2×2)</button>
+            <button class="preset-chip" data-shape-a="2, 2" data-shape-b="2, 2">Square (2×2) @ (2×2) &rarr; (2×2)</button>
+            <button class="preset-chip" data-shape-a="3, 2" data-shape-b="2, 3">Tall &times; Wide (3×2) @ (2×3) &rarr; (3×3)</button>
+
+            <span class="preset-group-title">Vectors:</span>
+            <button class="preset-chip" data-shape-a="1, 3" data-shape-b="3, 2">Row Vector (1×3) @ (3×2) &rarr; (1×2)</button>
+            <button class="preset-chip" data-shape-a="2, 3" data-shape-b="3, 1">Matrix @ Column (2×3) @ (3×1) &rarr; (2×1)</button>
+
+            <span class="preset-group-title">Try an Error:</span>
+            <button class="preset-chip error-chip" data-shape-a="2, 3" data-shape-b="4, 2">Mismatch (2×3) @ (4×2) [K=3 ≠ K=4]</button>
+          </div>
+
+          <!-- The Golden Rule Banner -->
+          <div class="golden-rule-card" id="goldenRuleCard">
+            <div class="rule-icon">&#128161;</div>
+            <div class="rule-content">
+              <div class="rule-title">The One Golden Rule of 2D Matrix Multiplication</div>
+              <div class="rule-equation-row">
+                <span class="rule-part-a">Matrix A ( <strong id="ruleM">2</strong> &times; <span class="highlight-k" id="ruleKA">3</span> )</span>
+                <span class="rule-symbol">@</span>
+                <span class="rule-part-b">Matrix B ( <span class="highlight-k" id="ruleKB">3</span> &times; <strong id="ruleN">2</strong> )</span>
+                <span class="rule-symbol">&rarr;</span>
+                <span class="rule-part-c">Result C ( <strong id="ruleResultM">2</strong> &times; <strong id="ruleResultN">2</strong> )</span>
+              </div>
+              <p class="rule-explanation" id="ruleExplanationText">
+                The <strong>inner numbers (<span class="highlight-k">3</span> and <span class="highlight-k">3</span>) MUST MATCH</strong>. They contract together into the dot product. The result takes the <strong>outer dimensions (<strong id="ruleOutDim">2 &times; 2</strong>)</strong>.
+              </p>
+            </div>
+          </div>
+
+          <!-- Error Alert Banner (visible when shapes don't match) -->
+          <div id="errorAlertBanner" class="validation-banner banner-invalid hidden">
+            <div class="banner-icon-col">
+              <div class="status-icon error-icon">&#10007;</div>
+            </div>
+            <div class="banner-body-col">
+              <div class="banner-header-row">
+                <h3 id="errorAlertTitle">Inner Dimensions Do Not Match!</h3>
+              </div>
+              <p id="errorAlertMessage" class="banner-desc">Columns of A must equal Rows of B.</p>
+              <div class="error-callout-box" id="errorCalloutCode"></div>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Playback Controls -->
+          <div class="playback-controls-bar" id="playbackControlsBar">
+            <div class="playback-buttons">
+              <button id="prevStepBtn" class="btn btn-secondary btn-sm" title="Previous element">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                Prev Element
+              </button>
+              <button id="playPauseBtn" class="btn btn-primary btn-sm" title="Auto play through all elements">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <span>Play Auto-Step</span>
+              </button>
+              <button id="nextStepBtn" class="btn btn-secondary btn-sm" title="Next element">
+                Next Element
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+              </button>
+            </div>
+
+            <div class="playback-status">
+              <span id="stepCounterText">Computing Element C[0, 0] (1 of 4)</span>
+            </div>
+
+            <div class="playback-speed">
+              <label for="speedSelect" class="text-muted text-sm">Speed:</label>
+              <select id="speedSelect" class="speed-select">
+                <option value="2000">Slow (2.0s)</option>
+                <option value="1200" selected>Normal (1.2s)</option>
+                <option value="600">Fast (0.6s)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- The Interactive Matrix Stage -->
+          <div class="matrices-stage" id="mainMatricesStage">
+            
+            <!-- Matrix A -->
+            <div class="matrix-block matrix-block-a">
+              <div class="matrix-label">
+                <span class="mat-name mat-name-a">Matrix A</span>
+                <span class="mat-dim" id="labelDimA">(2 &times; 3)</span>
+              </div>
+              <div class="matrix-table-wrapper wrapper-a">
+                <div id="matrix2DATable" class="matrix-table"></div>
+              </div>
+              <span class="matrix-hint-caption">Amber Row highlighted</span>
+            </div>
+
+            <!-- Operator Symbol -->
+            <div class="matrix-operator">
+              <span class="operator-circle">@</span>
+            </div>
+
+            <!-- Matrix B -->
+            <div class="matrix-block matrix-block-b">
+              <div class="matrix-label">
+                <span class="mat-name mat-name-b">Matrix B</span>
+                <span class="mat-dim" id="labelDimB">(3 &times; 2)</span>
+              </div>
+              <div class="matrix-table-wrapper wrapper-b">
+                <div id="matrix2DBTable" class="matrix-table"></div>
+              </div>
+              <span class="matrix-hint-caption">Green Col highlighted</span>
+            </div>
+
+            <!-- Equals Symbol -->
+            <div class="matrix-operator">
+              <span class="operator-circle circle-arrow">=</span>
+            </div>
+
+            <!-- Matrix C (Output) -->
+            <div class="matrix-block matrix-block-c">
+              <div class="matrix-label">
+                <span class="mat-name mat-name-c">Result Matrix C</span>
+                <span class="mat-dim" id="labelDimC">(2 &times; 2)</span>
+              </div>
+              <div class="matrix-table-wrapper wrapper-c">
+                <div id="matrix2DCTable" class="matrix-table"></div>
+              </div>
+              <span class="matrix-hint-caption">Click any cell to inspect!</span>
+            </div>
+
+          </div>
+
+          <!-- Dot Product Breakdown Card -->
+          <div class="dot-product-card" id="mainDotProductCard">
+            <div class="dot-product-header">
+              <div class="dot-cell-title">
+                <span class="badge badge-gold">Active Element</span>
+                <strong id="activeDotCellLabel">C[row 0, col 0]</strong>
+              </div>
+              <div class="dot-formula-title">
+                Row-Column Vector Dot Product: <code>np.dot(row, col)</code>
+              </div>
+            </div>
+
+            <div class="dot-product-visual-box">
+              <div class="dot-vectors-row">
+                <div class="vector-item vector-a">
+                  <span class="vector-tag">Row from A:</span>
+                  <code id="activeVectorA">[1, 2, 0]</code>
+                </div>
+                <span class="dot-symbol">&bull;</span>
+                <div class="vector-item vector-b">
+                  <span class="vector-tag">Col from B:</span>
+                  <code id="activeVectorB">[2, -1, 3]</code>
+                </div>
+              </div>
+
+              <div class="dot-arithmetic-line">
+                <span class="text-muted">Multiply pairs &amp; sum:</span>
+                <div class="math-calculation" id="activeMathCalculation">
+                  (1 &times; 2) + (2 &times; -1) + (0 &times; 3) = 2 - 2 + 0 = <strong>0</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 2: 3D BATCHES & BROADCASTING (LEVEL 2) ==================== -->
+      <section id="tab-batches" class="tab-pane" role="tabpanel">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>What happens when we add 3D or 4D Batches?</h2>
+              <span class="badge badge-accent">Batches &amp; Broadcasting</span>
+            </div>
+            <div class="text-muted text-sm">Everything before the last 2 dimensions is treated as independent batch slices!</div>
+          </div>
+
+          <div class="preset-chips-container">
+            <span class="preset-group-title">Batch Scenarios:</span>
+            <button class="preset-chip active" id="btnBatchStack" data-shape-a="2, 2, 3" data-shape-b="2, 3, 2">Stack of 2 Batches: (2, 2, 3) @ (2, 3, 2)</button>
+            <button class="preset-chip" id="btnBroadcastA" data-shape-a="1, 2, 3" data-shape-b="3, 3, 2">Broadcast Matrix A (1 to 3): (1, 2, 3) @ (3, 3, 2)</button>
+            <button class="preset-chip" id="btnBroadcastB" data-shape-a="2, 2, 3" data-shape-b="1, 3, 2">Broadcast Matrix B (1 to 2): (2, 2, 3) @ (1, 3, 2)</button>
+            <button class="preset-chip" id="btnAttention" data-shape-a="2, 4, 8, 16" data-shape-b="2, 4, 16, 8">Transformer Attention Q @ K^T: (2, 4, 8, 16) @ (2, 4, 16, 8)</button>
+          </div>
+
+          <!-- Visual Batch Stack Representation -->
+          <div class="batch-concept-card">
+            <div class="batch-concept-text">
+              <h3>Think of Batch Dimensions as a Stack of Pages</h3>
+              <p>
+                NumPy does NOT do anything complicated across batch dimensions: it simply loops through each page and runs the 2D matrix multiplication we saw in Level 1!
+              </p>
+              <div class="batch-concept-formula" id="batchConceptFormula">
+                <code>(Batch, M, K) @ (Batch, K, N) &rarr; (Batch, M, N)</code>
+              </div>
+            </div>
+
+            <!-- Batch Slices Selector -->
+            <div class="batch-slices-deck" id="batchSlicesDeck">
+              <!-- Dynamically populated page cards -->
+            </div>
+          </div>
+
+          <!-- Active Slice 2D View -->
+          <div class="active-batch-preview-panel mt-4">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Currently Viewing Batch Slice: <span id="activeBatchSliceTitle" class="badge badge-accent">Batch [0]</span></h3>
+              </div>
+              <div class="text-muted text-sm" id="batchBroadcastNotice">Matrix A and Matrix B match 1-to-1</div>
+            </div>
+
+            <div class="matrices-stage" id="batchMatricesStage">
+              <!-- 2D Slice for active batch -->
+              <div class="matrix-block matrix-block-a">
+                <div class="matrix-label">
+                  <span class="mat-name mat-name-a">Slice A</span>
+                  <span class="mat-dim" id="batchSliceDimA">(2 &times; 3)</span>
+                </div>
+                <div class="matrix-table-wrapper wrapper-a">
+                  <div id="matrixBatchATable" class="matrix-table"></div>
+                </div>
+              </div>
+
+              <div class="matrix-operator"><span>@</span></div>
+
+              <div class="matrix-block matrix-block-b">
+                <div class="matrix-label">
+                  <span class="mat-name mat-name-b">Slice B</span>
+                  <span class="mat-dim" id="batchSliceDimB">(3 &times; 2)</span>
+                </div>
+                <div class="matrix-table-wrapper wrapper-b">
+                  <div id="matrixBatchBTable" class="matrix-table"></div>
+                </div>
+              </div>
+
+              <div class="matrix-operator"><span>=</span></div>
+
+              <div class="matrix-block matrix-block-c">
+                <div class="matrix-label">
+                  <span class="mat-name mat-name-c">Result Slice C</span>
+                  <span class="mat-dim" id="batchSliceDimC">(2 &times; 2)</span>
+                </div>
+                <div class="matrix-table-wrapper wrapper-c">
+                  <div id="matrixBatchCTable" class="matrix-table"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 3: CUSTOM SHAPE SANDBOX (LEVEL 3) ==================== -->
+      <section id="tab-sandbox" class="tab-pane" role="tabpanel">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Custom Shape Sandbox &amp; Dimension Alignment Strip</h2>
+              <span class="badge badge-info">Type Any Shape</span>
+            </div>
+            <div class="text-muted text-sm">Test any arbitrary tensor shapes and inspect how NumPy aligns them:</div>
+          </div>
+
+          <div class="shape-editor-grid">
+            <div class="shape-card shape-card-a">
+              <div class="shape-card-header">
+                <span class="shape-label-badge badge-a">Tensor A Shape</span>
+              </div>
+              <div class="input-with-icon">
+                <span class="input-affix">(</span>
+                <input type="text" id="sandboxShapeA" value="2, 1, 4, 3" placeholder="e.g. 2, 1, 4, 3" spellcheck="false" autocomplete="off">
+                <span class="input-affix">)</span>
+              </div>
+              <div class="text-muted text-xs">Rows: M, Cols: K</div>
+            </div>
+
+            <div class="operator-divider">
+              <div class="operator-circle"><span>@</span></div>
+            </div>
+
+            <div class="shape-card shape-card-b">
+              <div class="shape-card-header">
+                <span class="shape-label-badge badge-b">Tensor B Shape</span>
+              </div>
+              <div class="input-with-icon">
+                <span class="input-affix">(</span>
+                <input type="text" id="sandboxShapeB" value="1, 5, 3, 6" placeholder="e.g. 1, 5, 3, 6" spellcheck="false" autocomplete="off">
+                <span class="input-affix">)</span>
+              </div>
+              <div class="text-muted text-xs">Rows: K, Cols: N</div>
+            </div>
+
+            <div class="operator-divider divider-arrow">
+              <div class="operator-circle circle-arrow"><span>&rarr;</span></div>
+            </div>
+
+            <div class="shape-card shape-card-result">
+              <div class="shape-card-header">
+                <span class="shape-label-badge badge-c">Result Shape</span>
+                <span id="sandboxValidBadge" class="badge badge-success">Valid</span>
+              </div>
+              <div class="result-formula">
+                <strong id="sandboxResultText" class="result-shape-value">(2, 5, 4, 6)</strong>
+              </div>
+              <div class="text-muted text-xs">Broadcasted shape</div>
+            </div>
+          </div>
+
+          <!-- Visual Dimension Alignment Strip -->
+          <div class="alignment-strip-wrapper mt-4">
+            <div class="panel-header" style="margin-bottom: 0.5rem;">
+              <h3>Dimension-by-Dimension Breakdown</h3>
+              <span class="badge badge-subtle">Right-to-Left Alignment</span>
+            </div>
+            <div id="sandboxAlignmentStrip" class="alignment-strip"></div>
+          </div>
+
+          <div class="validation-banner mt-4" id="sandboxBanner">
+            <div class="banner-body-col">
+              <h3 id="sandboxBannerTitle">Valid Matmul</h3>
+              <p id="sandboxBannerDesc" class="banner-desc"></p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 4: CHEAT SHEET & CODE ==================== -->
+      <section id="tab-comparison" class="tab-pane" role="tabpanel">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <h2>The NumPy Cheat Sheet: What's the Difference?</h2>
+            <span class="badge badge-accent">np.dot vs np.matmul (@)</span>
+          </div>
+
+          <div class="comparison-cards-grid">
+            <div class="compare-card">
+              <div class="compare-badge badge-matmul">A @ B &bull; np.matmul(A, B)</div>
+              <h4>Matrix Multiplication (Standard)</h4>
+              <p>Designed specifically for linear algebra. Multiplies the trailing 2D slices and broadcasts leading batch dimensions.</p>
+              <div class="code-pill"><code>(B, M, K) @ (B, K, N) &rarr; (B, M, N)</code></div>
+              <ul class="text-sm text-secondary">
+                <li>Best for Deep Learning and Transformers</li>
+                <li>Supports NumPy broadcasting across batch axes</li>
+              </ul>
+            </div>
+
+            <div class="compare-card">
+              <div class="compare-badge badge-dot">np.dot(A, B)</div>
+              <h4>Dot Product / Tensor Contraction</h4>
+              <p>For 1D vectors, it's the inner product. For 2D matrices, it's identical to <code>@</code>. But for 3D+, it contracts the last axis of A with the second-to-last of B across ALL axes!</p>
+              <div class="code-pill"><code>(B, M, K) dot (B, K, N) &rarr; (B, M, B, N)</code></div>
+              <ul class="text-sm text-secondary">
+                <li>Does NOT broadcast batch dimensions</li>
+                <li>Usually produces larger high-dimensional tensors</li>
+              </ul>
+            </div>
+
+            <div class="compare-card">
+              <div class="compare-badge badge-multiply">A * B &bull; np.multiply(A, B)</div>
+              <h4>Element-wise Multiplication</h4>
+              <p>Multiplies numbers in matching positions. Not matrix multiplication!</p>
+              <div class="code-pill"><code>[2, 3] * [4, 5] &rarr; [8, 15]</code></div>
+              <ul class="text-sm text-secondary">
+                <li>Requires identical or broadcastable shapes</li>
+                <li>Also known as the Hadamard Product</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- The Python Loop Explanation -->
+          <div class="loop-explanation-card mt-4">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Under the Hood: It's Just 3 Simple Loops!</h3>
+                <span class="badge badge-gold">Demystifying @</span>
+              </div>
+            </div>
+            <p class="text-secondary text-sm mb-3">
+              Any 2D matrix multiplication $C = A @ B$ is fundamentally calculated with this simple 3-level nested loop:
+            </p>
+            <pre class="code-pre"><code># How A @ B is calculated element-by-element:
+for i in range(M):          # 1. Loop through each row of A
+    for j in range(N):      # 2. Loop through each column of B
+        sum_val = 0
+        for k in range(K):  # 3. Multiply matching pairs along K and sum them!
+            sum_val += A[i][k] * B[k][j]
+        C[i][j] = sum_val</code></pre>
+          </div>
+
+          <!-- Ready to Run Code Snippet -->
+          <div class="code-box-container mt-4">
+            <div class="panel-header">
+              <h3>Ready-to-Run NumPy Code</h3>
+              <button id="copyCheatCodeBtn" class="btn btn-secondary btn-xs copy-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy Code</span>
+              </button>
+            </div>
+            <pre class="code-pre"><code id="cheatCodeBlock">import numpy as np
+
+# Create 2D matrices
+A = np.array([[1, 2, 0],
+              [3, 1, -1]])   # Shape (2, 3)
+
+B = np.array([[2, -1],
+              [1,  3],
+              [0,  2]])      # Shape (3, 2)
+
+# Matrix multiplication with @
+C = A @ B  # Or np.matmul(A, B)
+
+print("Result Matrix C:\n", C)
+print("Shape of C:", C.shape)  # (2, 2)</code></pre>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div><strong>NumPy Matmul &amp; Dot Product Visualizer</strong> &bull; Part of Hobby Projects Collection</div>
+      <div>Zero-dependency Vanilla Web Architecture (HTML5 &bull; CSS3 &bull; ES6+)</div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Code copied to clipboard!</div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="matmul-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
