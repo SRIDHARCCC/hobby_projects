@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoftmaxLab: Softmax, Temperature &amp; LLM Sampling Visualizer | Hobby Projects</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon" title="Softmax &amp; Sampling Visualizer">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 9l-5 5-4-4-3 3"></path>
+            <circle cx="18" cy="9" r="2"></circle>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>SoftmaxLab: Softmax, Temperature &amp; Sampling Visualizer</h1>
+            <span class="badge badge-accent">LLM Decoding</span>
+            <span class="badge badge-subtle">&sigma;(z/T) &bull; Top-K &bull; Top-P</span>
+          </div>
+          <p class="subtitle">Interactive visual explorer for Softmax, Temperature scaling, Top-K, and Nucleus (Top-P) sampling</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="btnQuickGreedy" class="btn btn-secondary btn-sm" title="Quickly switch to Greedy / Argmax mode (T=0.05, K=1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Greedy Mode
+        </button>
+        <button id="btnQuickBalanced" class="btn btn-secondary btn-sm" title="Reset to standard balanced sampling (T=0.7, Top-P=0.9)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Balanced Preset
+        </button>
+        <button id="btnResetApp" class="btn btn-secondary btn-sm" title="Reset all parameters and scenarios to default">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Reset
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs: Progressive Learning -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="nav-tab active" data-tab="tab-playground" role="tab" aria-selected="true">
+        <span>🎛️ Playground &amp; Monte Carlo</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-story" role="tab" aria-selected="false">
+        <span>📖 Autoregressive Story Generator</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-math" role="tab" aria-selected="false">
+        <span>📐 Step-by-Step Math &amp; Pipeline</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-quiz" role="tab" aria-selected="false">
+        <span>🎓 Student Quiz &amp; Challenges</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      
+      <!-- ==================== TAB 1: INTERACTIVE PLAYGROUND ==================== -->
+      <section id="tab-playground" class="tab-pane active" role="tabpanel">
+        
+        <!-- Presets Selection Bar -->
+        <div class="panel presets-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>1. Select an Educational Prompt Scenario</h2>
+              <span class="badge badge-info">Real Logit Distributions</span>
+            </div>
+            <div class="text-muted text-sm">Choose a scenario to see how real LLMs predict the next token:</div>
+          </div>
+
+          <div class="preset-chips-container" id="presetChipsContainer">
+            <!-- Dynamic scenario chips populated by app.js -->
+          </div>
+
+          <div class="scenario-prompt-box">
+            <span class="prompt-label">Current Prompt:</span>
+            <span class="prompt-text" id="activePromptText">"The capital of France is [ ... ]"</span>
+            <span class="scenario-desc text-muted" id="activeScenarioDesc">Target factual answer has a high logit peak.</span>
+          </div>
+        </div>
+
+        <!-- Hyperparameters Control Board -->
+        <div class="panel params-panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>2. Adjust Sampling Hyperparameters</h2>
+              <span class="badge badge-accent">Interactive Controls</span>
+            </div>
+            <div class="text-muted text-sm">Observe how Temperature, Top-K, and Top-P transform logits into probabilities:</div>
+          </div>
+
+          <div class="params-grid">
+            <!-- Temperature Control -->
+            <div class="param-card">
+              <div class="param-header">
+                <div class="param-title">
+                  <span class="param-name">Temperature (<span class="font-mono">T</span>)</span>
+                  <span class="param-badge" id="tempRegimeBadge">Balanced (T=1.0)</span>
+                </div>
+                <div class="param-val-display font-mono" id="tempValDisplay">1.00</div>
+              </div>
+              <p class="param-desc">Controls entropy. Divides raw logits (<span class="font-mono">z/T</span>). Low <span class="font-mono">T</span> sharpens towards argmax; high <span class="font-mono">T</span> flattens towards uniform.</p>
+              
+              <div class="slider-wrapper">
+                <input type="range" id="tempSlider" min="0.05" max="3.0" step="0.05" value="1.0" class="custom-slider slider-temp">
+                <div class="slider-ticks">
+                  <span>0.05 (Greedy)</span>
+                  <span>1.0 (Softmax)</span>
+                  <span>2.0 (High)</span>
+                  <span>3.0 (Chaos)</span>
+                </div>
+              </div>
+
+              <div class="param-preset-buttons">
+                <button class="btn-micro" data-set-temp="0.05">0.05 (Greedy)</button>
+                <button class="btn-micro" data-set-temp="0.30">0.30 (Code/Math)</button>
+                <button class="btn-micro active" data-set-temp="1.00">1.00 (Standard)</button>
+                <button class="btn-micro" data-set-temp="1.50">1.50 (Creative)</button>
+                <button class="btn-micro" data-set-temp="2.50">2.50 (Chaotic)</button>
+              </div>
+            </div>
+
+            <!-- Top-K Control -->
+            <div class="param-card">
+              <div class="param-header">
+                <div class="param-title">
+                  <span class="param-name">Top-K (<span class="font-mono">K</span>)</span>
+                  <span class="param-badge" id="topKRegimeBadge">All Tokens</span>
+                </div>
+                <div class="param-val-display font-mono" id="topKValDisplay">8</div>
+              </div>
+              <p class="param-desc">Truncates vocabulary to the top <span class="font-mono">K</span> most probable tokens and zeros the rest, preventing absurd tail hallucinations.</p>
+              
+              <div class="slider-wrapper">
+                <input type="range" id="topKSlider" min="1" max="8" step="1" value="8" class="custom-slider slider-topk">
+                <div class="slider-ticks">
+                  <span>K=1 (Argmax)</span>
+                  <span>K=3</span>
+                  <span>K=5</span>
+                  <span>K=All (Off)</span>
+                </div>
+              </div>
+
+              <div class="param-preset-buttons">
+                <button class="btn-micro" data-set-topk="1">K=1</button>
+                <button class="btn-micro" data-set-topk="2">K=2</button>
+                <button class="btn-micro" data-set-topk="3">K=3</button>
+                <button class="btn-micro" data-set-topk="5">K=5</button>
+                <button class="btn-micro active" data-set-topk="max">K=All (Off)</button>
+              </div>
+            </div>
+
+            <!-- Top-P (Nucleus) Control -->
+            <div class="param-card">
+              <div class="param-header">
+                <div class="param-title">
+                  <span class="param-name">Top-P / Nucleus (<span class="font-mono">P</span>)</span>
+                  <span class="param-badge" id="topPRegimeBadge">Full Mass (P=1.0)</span>
+                </div>
+                <div class="param-val-display font-mono" id="topPValDisplay">1.00</div>
+              </div>
+              <p class="param-desc">Dynamically retains the smallest set of top tokens whose cumulative probability &ge; <span class="font-mono">P</span>. Adapts to model confidence.</p>
+              
+              <div class="slider-wrapper">
+                <input type="range" id="topPSlider" min="0.05" max="1.0" step="0.01" value="1.0" class="custom-slider slider-topp">
+                <div class="slider-ticks">
+                  <span>0.05 (Tight)</span>
+                  <span>0.50</span>
+                  <span>0.90 (Standard)</span>
+                  <span>1.00 (Off)</span>
+                </div>
+              </div>
+
+              <div class="param-preset-buttons">
+                <button class="btn-micro" data-set-topp="0.50">P=0.50</button>
+                <button class="btn-micro" data-set-topp="0.80">P=0.80</button>
+                <button class="btn-micro" data-set-topp="0.90">P=0.90</button>
+                <button class="btn-micro" data-set-topp="0.95">P=0.95</button>
+                <button class="btn-micro active" data-set-topp="1.00">P=1.00 (Off)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Information Metrics Bar -->
+          <div class="metrics-row">
+            <div class="metric-item">
+              <div class="metric-label">Shannon Entropy <span class="font-mono">H(P)</span></div>
+              <div class="metric-value font-mono" id="metricEntropy">0.00 bits</div>
+              <div class="entropy-bar-track">
+                <div class="entropy-bar-fill" id="metricEntropyFill" style="width: 10%;"></div>
+              </div>
+              <div class="metric-caption text-muted">Uncertainty measure</div>
+            </div>
+
+            <div class="metric-item">
+              <div class="metric-label">Perplexity <span class="font-mono">2^H</span></div>
+              <div class="metric-value font-mono" id="metricPerplexity">1.00</div>
+              <div class="metric-caption text-muted">Effective candidate options</div>
+            </div>
+
+            <div class="metric-item">
+              <div class="metric-label">Active / Surviving Tokens</div>
+              <div class="metric-value font-mono" id="metricActiveCount">8 / 8</div>
+              <div class="metric-caption text-success" id="metricActiveCaption">Eligible for sampling</div>
+            </div>
+
+            <div class="metric-item">
+              <div class="metric-label">Pruned Tokens</div>
+              <div class="metric-value font-mono" id="metricPrunedCount">0 pruned</div>
+              <div class="metric-caption text-danger" id="metricPrunedCaption">Zero probability</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Visualization & Sampling Board -->
+        <div class="playground-layout">
+          
+          <!-- Left Column: Visual Charts & Token Logits Editor -->
+          <div class="playground-left">
+            
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h2>3. Probability Distribution &amp; Truncation</h2>
+                </div>
+                <!-- View Mode Buttons -->
+                <div class="view-mode-toggles">
+                  <button class="view-toggle-btn active" data-view="final-probs">Final Sampling Probabilities</button>
+                  <button class="view-toggle-btn" data-view="pipeline-compare">Multi-Stage Flow</button>
+                  <button class="view-toggle-btn" data-view="cdf-curve">Cumulative CDF &amp; Top-P Line</button>
+                </div>
+              </div>
+
+              <!-- Main Visualizer Chart Canvas / SVG Container -->
+              <div class="chart-container" id="mainChartContainer">
+                <!-- Rendered dynamically via app.js -->
+              </div>
+
+              <div class="chart-legend">
+                <div class="legend-item"><span class="legend-dot dot-active"></span> Active / Sampleable</div>
+                <div class="legend-item"><span class="legend-dot dot-pruned-topk"></span> Cut by Top-K</div>
+                <div class="legend-item"><span class="legend-dot dot-pruned-topp"></span> Cut by Top-P (Nucleus)</div>
+              </div>
+            </div>
+
+            <!-- Interactive Token Logit Editor Table -->
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h3>Interactive Token Logits &amp; Softmax Table</h3>
+                  <span class="badge badge-subtle">Drag sliders or edit values</span>
+                </div>
+                <div class="table-actions">
+                  <button id="btnAddToken" class="btn btn-secondary btn-xs">+ Add Token</button>
+                  <button id="btnResetLogits" class="btn btn-secondary btn-xs">Reset Logits</button>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="token-table" id="tokenTable">
+                  <thead>
+                    <tr>
+                      <th>Token</th>
+                      <th>Raw Logit (z)</th>
+                      <th>Scaled (z/T)</th>
+                      <th>Exp e^(z/T)</th>
+                      <th>Base Softmax</th>
+                      <th>Top-K</th>
+                      <th>Cumul. CDF</th>
+                      <th>Final Prob</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tokenTableBody">
+                    <!-- Populated dynamically via app.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Interactive Token Sampler & Monte Carlo Wheel -->
+          <div class="playground-right">
+            
+            <!-- Single Token Sampler (Dice Roll) -->
+            <div class="panel sampler-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h2>4. Interactive Next-Token Sampler</h2>
+                  <span class="badge badge-accent">Stochastic Roll</span>
+                </div>
+              </div>
+
+              <p class="text-muted text-sm">
+                In actual LLM generation, a uniform random number <span class="font-mono">r &isin; [0, 1)</span> is drawn. It selects the token in whose cumulative probability interval <span class="font-mono">[start, end)</span> it lands.
+              </p>
+
+              <!-- Cumulative Roulette / Interval Bar -->
+              <div class="roulette-track" id="rouletteTrack" title="Probability Mass Interval [0, 1]">
+                <!-- Color segments rendered dynamically -->
+              </div>
+              <div class="roulette-marker-container">
+                <div class="roulette-needle" id="rouletteNeedle" style="left: 0%;">
+                  <div class="needle-pointer"></div>
+                  <div class="needle-label font-mono" id="needleLabel">r = 0.000</div>
+                </div>
+              </div>
+
+              <div class="sampler-actions">
+                <button id="btnSampleOnce" class="btn btn-primary btn-lg">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+                  🎲 Roll Next Token
+                </button>
+              </div>
+
+              <!-- Last Sampled Token Card -->
+              <div class="sampled-result-card" id="sampledResultCard">
+                <div class="sampled-label">Last Sampled Token:</div>
+                <div class="sampled-token-badge font-mono" id="sampledTokenName">Click 'Roll Next Token'</div>
+                <div class="sampled-details text-muted" id="sampledDetailsText">Draws a random number r &isin; [0, 1)</div>
+              </div>
+            </div>
+
+            <!-- Monte Carlo Simulation Lab -->
+            <div class="panel monte-carlo-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <h2>5. Monte Carlo Simulation</h2>
+                  <span class="badge badge-info">Law of Large Numbers</span>
+                </div>
+              </div>
+
+              <p class="text-muted text-sm">
+                Sample hundreds or thousands of tokens repeatedly to verify empirical frequency matches theoretical softmax probability:
+              </p>
+
+              <div class="monte-carlo-controls">
+                <div class="mc-btn-group">
+                  <button class="btn btn-secondary btn-sm mc-btn active" data-samples="100">100 Draws</button>
+                  <button class="btn btn-secondary btn-sm mc-btn" data-samples="1000">1,000 Draws</button>
+                  <button class="btn btn-secondary btn-sm mc-btn" data-samples="10000">10,000 Draws</button>
+                </div>
+                <button id="btnRunMonteCarlo" class="btn btn-primary btn-sm">Run Simulation</button>
+              </div>
+
+              <!-- Monte Carlo Results Chart -->
+              <div class="mc-chart-box" id="mcChartBox">
+                <div class="empty-state text-muted text-center py-4">Click "Run Simulation" to generate empirical frequency data</div>
+              </div>
+
+              <div class="mc-stats-row" id="mcStatsRow" style="display: none;">
+                <div class="mc-stat-item">
+                  <span class="text-muted">Total Draws:</span>
+                  <span class="font-mono text-bold" id="mcTotalDraws">1000</span>
+                </div>
+                <div class="mc-stat-item">
+                  <span class="text-muted">Max Error:</span>
+                  <span class="font-mono text-accent" id="mcMaxError">0.00%</span>
+                </div>
+                <div class="mc-stat-item">
+                  <span class="text-muted">Mean Sq Error:</span>
+                  <span class="font-mono text-bold" id="mcMse">0.0000</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 2: AUTOREGRESSIVE STORY GENERATOR ==================== -->
+      <section id="tab-story" class="tab-pane" role="tabpanel">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Autoregressive Generation Laboratory</h2>
+              <span class="badge badge-accent">Token-by-Token LLM Simulation</span>
+            </div>
+            <div class="text-muted text-sm">See how Temperature and Sampling parameters affect real sequential story generation:</div>
+          </div>
+
+          <!-- Story Theme Selector -->
+          <div class="story-themes-row">
+            <label class="theme-label">Select Story Scenario:</label>
+            <div class="story-chips-container" id="storyChipsContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Story Hyperparameters Bar -->
+          <div class="story-hyperparams-bar">
+            <div class="story-param">
+              <label>Temperature: <span class="font-mono" id="storyTempVal">0.70</span></label>
+              <input type="range" id="storyTempSlider" min="0.05" max="2.5" step="0.05" value="0.70" class="custom-slider">
+            </div>
+            <div class="story-param">
+              <label>Top-K: <span class="font-mono" id="storyTopKVal">3</span></label>
+              <input type="range" id="storyTopKSlider" min="1" max="5" step="1" value="3" class="custom-slider">
+            </div>
+            <div class="story-param">
+              <label>Top-P: <span class="font-mono" id="storyTopPVal">0.90</span></label>
+              <input type="range" id="storyTopPSlider" min="0.1" max="1.0" step="0.05" value="0.90" class="custom-slider">
+            </div>
+          </div>
+
+          <!-- Terminal / Generated Text Output -->
+          <div class="story-terminal">
+            <div class="terminal-bar">
+              <div class="terminal-dots">
+                <span class="dot-red"></span>
+                <span class="dot-yellow"></span>
+                <span class="dot-green"></span>
+              </div>
+              <div class="terminal-title">llm-generation-stream.log</div>
+              <div class="terminal-status" id="storyStatusBadge">Awaiting Step</div>
+            </div>
+            <div class="terminal-body" id="storyTerminalText">
+              <!-- Rendered tokens with probability color highlights -->
+            </div>
+          </div>
+
+          <!-- Next-Token Candidates Selection Matrix -->
+          <div class="next-candidates-panel">
+            <div class="candidates-header">
+              <span class="candidates-title">Next-Token Candidate Probabilities at Current Step:</span>
+              <span class="text-muted text-xs">Click any candidate to override and branch the story manually!</span>
+            </div>
+            <div class="candidates-grid" id="storyCandidatesGrid">
+              <!-- Candidate cards populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Story Playback Controls -->
+          <div class="story-controls-row">
+            <button id="btnStoryStep" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Generate Next Token
+            </button>
+            <button id="btnStoryAutoPlay" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+              Auto-Play Story
+            </button>
+            <button id="btnStoryReset" class="btn btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              Restart Story
+            </button>
+          </div>
+
+          <!-- Pedagogical Note -->
+          <div class="info-callout mt-4">
+            <div class="callout-icon">💡</div>
+            <div class="callout-content">
+              <strong>Teaching Note for Students:</strong> Notice how setting Temperature to <span class="font-mono">0.05</span> always deterministically selects the top token at every step (Greedy Decoding). Increasing Temperature to <span class="font-mono">1.2</span> allows creative and unexpected branch paths, while Top-P safeguards against completely unrelated nonsense tokens!
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 3: STEP-BY-STEP MATH & PIPELINE ==================== -->
+      <section id="tab-math" class="tab-pane" role="tabpanel">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>Step-by-Step Mathematical Sampling Pipeline</h2>
+              <span class="badge badge-accent">Live Mathematical Proof</span>
+            </div>
+            <div class="text-muted text-sm">How raw neural network logits transform into sampling probabilities:</div>
+          </div>
+
+          <div class="pipeline-steps-container">
+            
+            <!-- Step 1 -->
+            <div class="math-card">
+              <div class="math-card-badge">Step 1</div>
+              <h3>Raw Logits (<span class="font-mono">z_i</span>)</h3>
+              <p>The neural network's final linear projection layer outputs unnormalized scores called <strong>logits</strong> for every token in vocabulary <span class="font-mono">V</span>:</p>
+              <div class="formula-block font-mono">
+                z = [z_1, z_2, ..., z_N] &isin; (-&infin;, +&infin;)
+              </div>
+              <p class="text-muted text-sm">Logits can be any real number: negative, zero, or positive. They cannot be interpreted as probabilities because they don't sum to 1 and can be negative.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="math-card">
+              <div class="math-card-badge">Step 2</div>
+              <h3>Temperature Scaling (<span class="font-mono">z_i / T</span>)</h3>
+              <p>Temperature <span class="font-mono">T &gt; 0</span> scales each logit prior to exponentiation, controlling the steepness of the probability landscape:</p>
+              <div class="formula-block font-mono">
+                z'_i = \frac{z_i}{T}
+              </div>
+              <div class="math-columns">
+                <div class="math-col">
+                  <strong>When T &rarr; 0 (Cold):</strong>
+                  <p class="text-sm text-muted">Differences between logits are magnified to infinity. The maximum logit gets probability 1.0; all others become 0.0 (Deterministic / Argmax).</p>
+                </div>
+                <div class="math-col">
+                  <strong>When T = 1.0 (Standard):</strong>
+                  <p class="text-sm text-muted">Original model distribution. Represents the exact calibrated log-likelihood of the trained model.</p>
+                </div>
+                <div class="math-col">
+                  <strong>When T &rarr; &infin; (Hot):</strong>
+                  <p class="text-sm text-muted">Differences between logits are crushed to zero (<span class="font-mono">z_i / T &rarr; 0</span>, <span class="font-mono">e^0 = 1</span>). All tokens become equally probable (Uniform distribution).</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="math-card">
+              <div class="math-card-badge">Step 3</div>
+              <h3>Softmax &amp; Numerical Stability (Log-Sum-Exp Trick)</h3>
+              <p>The standard Softmax formula normalizes exponentials:</p>
+              <div class="formula-block font-mono">
+                &sigma;(z)_i = \frac{e^{z_i / T}}{\sum_{j=1}^N e^{z_j / T}}
+              </div>
+              
+              <div class="stability-box">
+                <div class="stability-title">⚠️ The Numerical Overflow Trap &amp; Solution:</div>
+                <p class="text-sm">
+                  In IEEE 754 floating-point arithmetic, <span class="font-mono">e^710</span> overflows to <span class="font-mono">+Infinity</span>, leading to <span class="font-mono">Infinity / Infinity = NaN</span> crashes.
+                  To prevent this, production LLMs apply the <strong>Log-Sum-Exp shift trick</strong>: subtract the maximum logit <span class="font-mono">m = max(z_j / T)</span>:
+                </p>
+                <div class="formula-block font-mono">
+                  &sigma;(z)_i = \frac{e^{(z_i / T) - m}}{\sum_{j=1}^N e^{(z_j / T) - m}}
+                </div>
+                <p class="text-sm text-muted">
+                  <strong>Mathematical Proof of Equivalence:</strong><br>
+                  <span class="font-mono">\frac{e^{z_i - m}}{\sum e^{z_j - m}} = \frac{e^{z_i} \cdot e^{-m}}{\sum e^{z_j} \cdot e^{-m}} = \frac{e^{z_i} \cdot \cancel{e^{-m}}}{\sum e^{z_j} \cdot \cancel{e^{-m}}} = \frac{e^{z_i}}{\sum e^{z_j}}</span>.<br>
+                  Because the largest exponent is now <span class="font-mono">e^0 = 1.0</span>, overflow is mathematically impossible!
+                </p>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="math-card">
+              <div class="math-card-badge">Step 4</div>
+              <h3>Top-K Filtering</h3>
+              <p>Sort tokens by probability descending. Keep only the top <span class="font-mono">K</span> candidates, zeroing all ranks <span class="font-mono">&gt; K</span>, then renormalize:</p>
+              <div class="formula-block font-mono">
+                p'_i = \begin{cases} \frac{p_i}{\sum_{k \in \text{Top-K}} p_k} &amp; \text{if } \text{rank}(i) \le K \\ 0 &amp; \text{otherwise} \end{cases}
+              </div>
+              <p class="text-sm text-muted"><strong>Limitation:</strong> A fixed <span class="font-mono">K</span> is rigid. If the model is confident with only 1 good token, <span class="font-mono">K=50</span> still includes 49 bad tokens. If the model is uncertain between 100 good tokens, <span class="font-mono">K=10</span> truncates 90 valid candidates.</p>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="math-card">
+              <div class="math-card-badge">Step 5</div>
+              <h3>Top-P (Nucleus) Sampling</h3>
+              <p>Top-P dynamically adapts vocabulary size. It finds the smallest subset of tokens whose cumulative probability exceeds threshold <span class="font-mono">P &isin; (0, 1]</span>:</p>
+              <div class="formula-block font-mono">
+                V^{(P)} = \text{smallest set such that } \sum_{i \in V^{(P)}} p_i \ge P
+              </div>
+              <p class="text-sm text-muted">
+                <strong>Why Nucleus is superior:</strong><br>
+                &bull; In high-confidence states (e.g., "The capital of France is ___"), the nucleus contracts to just 1 or 2 tokens.<br>
+                &bull; In low-confidence states (e.g., "The strange creature had a ___"), the nucleus dynamically expands to dozens of plausible tokens!
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Side-by-Side Comparison Matrix -->
+          <div class="comparison-table-wrapper mt-4">
+            <h3 class="mb-2">Summary Matrix: Decoding Hyperparameters Comparison</h3>
+            <table class="token-table comparison-matrix">
+              <thead>
+                <tr>
+                  <th>Hyperparameter</th>
+                  <th>Formula / Operation</th>
+                  <th>Low Value Effect</th>
+                  <th>High Value Effect</th>
+                  <th>Recommended Setting</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Temperature (T)</strong></td>
+                  <td>Scale logits: <span class="font-mono">z / T</span></td>
+                  <td>Sharp peaks, deterministic, repetitive, factual</td>
+                  <td>Flat distribution, creative, diverse, hallucinatory</td>
+                  <td>0.1 for Code/Math; 0.7 for Chat; 1.0 for Story</td>
+                </tr>
+                <tr>
+                  <td><strong>Top-K</strong></td>
+                  <td>Truncate to fixed rank <span class="font-mono">K</span></td>
+                  <td>Strictly bounds options; K=1 is Argmax</td>
+                  <td>Includes more long-tail tokens; K=V is off</td>
+                  <td>K = 40 to 50 (often combined with Top-P)</td>
+                </tr>
+                <tr>
+                  <td><strong>Top-P (Nucleus)</strong></td>
+                  <td>Truncate by cumulative mass <span class="font-mono">&ge; P</span></td>
+                  <td>Narrow dynamic subset (only top probable tokens)</td>
+                  <td>Permissive dynamic subset; P=1.0 is off</td>
+                  <td>P = 0.90 to 0.95 (gold standard for modern LLMs)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 4: STUDENT QUIZ & CHALLENGES ==================== -->
+      <section id="tab-quiz" class="tab-pane" role="tabpanel">
+        
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2>🎓 Student Comprehension Challenges</h2>
+              <span class="badge badge-accent">Interactive Quiz</span>
+            </div>
+            <div class="quiz-score-badge font-mono" id="quizScoreBadge">Score: 0 / 6</div>
+          </div>
+
+          <p class="text-muted text-sm mb-4">
+            Test your understanding of Softmax, Temperature, and Sampling mechanics. Click your answer for instant pedagogical feedback and mathematical explanations:
+          </p>
+
+          <div class="quiz-questions-list" id="quizQuestionsContainer">
+            <!-- Questions rendered via app.js -->
+          </div>
+
+          <div class="quiz-reset-row mt-4">
+            <button id="btnResetQuiz" class="btn btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              Reset Quiz
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p>Part of the <a href="https://github.com/SRIDHARCCC/hobby_projects" target="_blank" rel="noopener">Hobby Projects</a> Collection &bull; Zero external dependencies &bull; Built with HTML5, CSS3 &amp; ES6 JavaScript</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="sampling-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
