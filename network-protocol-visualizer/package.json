@@ -1,0 +1,21 @@
+{
+  "name": "network-architecture-lab",
+  "version": "1.0.0",
+  "description": "An interactive network protocol and client-server architecture learning laboratory.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "tunnel": "ssh -T -o StrictHostKeyChecking=no -R 80:127.0.0.1:3000 nokey@localhost.run"
+  },
+  "keywords": [
+    "networking",
+    "http",
+    "tcp-ip",
+    "reverse-tunnel",
+    "latency",
+    "sse",
+    "architecture"
+  ],
+  "author": "",
+  "license": "MIT"
+}

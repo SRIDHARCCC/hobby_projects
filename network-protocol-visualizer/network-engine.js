@@ -96,7 +96,7 @@ class NetworkEngine {
     const defaultHeaders = {
       'Date': new Date().toUTCString(),
       'Content-Type': 'application/json; charset=utf-8',
-      'Content-Length': Buffer ? Buffer.byteLength(body, 'utf8') : body.length,
+      'Content-Length': (typeof Buffer !== 'undefined') ? Buffer.byteLength(body, 'utf8') : (new TextEncoder().encode(body)).length,
       'Connection': 'keep-alive',
       ...headers
     };

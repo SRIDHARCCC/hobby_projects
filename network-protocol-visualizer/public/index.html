@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Network & Architecture Lab</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --card-border: #1e2c4a;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --accent-green: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #f43f5e;
+      --accent-purple: #c084fc;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: linear-gradient(180deg, #18223d 0%, var(--card-bg) 100%);
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: #0f172a;
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 80px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #04101e;
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .card-title span.icon {
+      margin-right: 6px;
+    }
+
+    /* Architecture Visualizer */
+    .arch-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+
+    .arch-node {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0c1322;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      position: relative;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+
+    .arch-node.active-hop {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .node-icon {
+      font-size: 1.5rem;
+      min-width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #18233c;
+      border-radius: 8px;
+    }
+
+    .node-info {
+      flex: 1;
+    }
+
+    .node-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .node-detail {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .arch-arrow {
+      text-align: center;
+      color: var(--accent);
+      font-size: 0.9rem;
+      line-height: 1;
+      opacity: 0.6;
+    }
+
+    /* Buttons & Interactive Elements */
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #04101e;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .status-btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .status-btn {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      color: #cbd5e1;
+      padding: 8px 6px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .status-btn.btn-2xx { border-color: rgba(52, 211, 153, 0.4); color: var(--accent-green); }
+    .status-btn.btn-3xx { border-color: rgba(251, 191, 36, 0.4); color: var(--accent-amber); }
+    .status-btn.btn-4xx { border-color: rgba(244, 63, 94, 0.4); color: var(--accent-rose); }
+    .status-btn.btn-5xx { border-color: rgba(192, 132, 252, 0.4); color: var(--accent-purple); }
+
+    /* Key-Value Tables & Code Blocks */
+    .kv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin-top: 8px;
+    }
+
+    .kv-table td {
+      padding: 6px 4px;
+      border-bottom: 1px solid #1a253d;
+    }
+
+    .kv-key {
+      color: var(--text-muted);
+      font-weight: 500;
+      width: 38%;
+      word-break: break-all;
+    }
+
+    .kv-value {
+      color: var(--accent);
+      font-family: var(--font-mono);
+      word-break: break-all;
+    }
+
+    .code-box {
+      background: #090e1a;
+      border: 1px solid #1a253d;
+      border-radius: 10px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-top: 8px;
+    }
+
+    /* Metric Counters */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .metric-card {
+      background: #0c1322;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: var(--font-mono);
+    }
+
+    .metric-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* Logs stream */
+    .stream-feed {
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .stream-item {
+      background: #090e1a;
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stream-item.method-get { border-left-color: var(--accent-green); }
+    .stream-item.method-post { border-left-color: var(--accent); }
+    .stream-item.method-err { border-left-color: var(--accent-rose); }
+
+    /* Slider control */
+    .slider-wrap {
+      margin-top: 12px;
+      background: #0c1322;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .info-card {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: #bae6fd;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">
+      <div class="status-dot"></div> Live Network Node
+    </div>
+    <h1>Network & Architecture Lab</h1>
+    <p class="subtitle">Real-time mobile packet & protocol inspection</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('flow')">🗺️ Flow</button>
+    <button class="tab-btn" onclick="switchTab('inspector')">🔍 Headers</button>
+    <button class="tab-btn" onclick="switchTab('lab')">🧪 Experiments</button>
+    <button class="tab-btn" onclick="switchTab('theory')">📚 Theory</button>
+  </div>
+
+  <!-- TAB 1: ARCHITECTURE FLOW -->
+  <div id="tab-flow" class="tab-content active">
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">📡</span> End-to-End Hop Flow</span>
+        <span style="font-size: 0.75rem; color: var(--accent-green);" id="flow-status">Ready</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px;">
+        Every button tap transmits packets through 5 distinct network architectural hops:
+      </p>
+
+      <div class="arch-flow">
+        <div class="arch-node" id="hop-client">
+          <div class="node-icon">📱</div>
+          <div class="node-info">
+            <div class="node-title">1. Mobile Client (Your Browser)</div>
+            <div class="node-detail" id="hop-client-detail">Resolving DNS & TCP Handshake...</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ [Cellular 4G/5G / Wi-Fi Radio Waves]</div>
+
+        <div class="arch-node" id="hop-carrier">
+          <div class="node-icon">🗼</div>
+          <div class="node-info">
+            <div class="node-title">2. Carrier Gateway & Public DNS</div>
+            <div class="node-detail">NAT Translation, BGP Routing, IP Gateway</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ [Encrypted HTTPS / TLS 1.3 over Port 443]</div>
+
+        <div class="arch-node" id="hop-tunnel">
+          <div class="node-icon">🛡️</div>
+          <div class="node-info">
+            <div class="node-title">3. Public Edge / Reverse Tunnel</div>
+            <div class="node-detail">TLS Termination, X-Forwarded Headers Added</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ [Multiplexed SSH Reverse Stream to PC]</div>
+
+        <div class="arch-node" id="hop-server">
+          <div class="node-icon">💻</div>
+          <div class="node-info">
+            <div class="node-title">4. Local Host & OS Socket</div>
+            <div class="node-detail">TCP Loopback (127.0.0.1:3000)</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">▼ [HTTP Parser & V8 Event Loop]</div>
+
+        <div class="arch-node" id="hop-app">
+          <div class="node-icon">⚙️</div>
+          <div class="node-info">
+            <div class="node-title">5. Node.js Application Logic</div>
+            <div class="node-detail" id="hop-app-detail">Routing, JSON Serialization, Response 200 OK</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button class="btn" id="btn-simulate-packet" onclick="runHopSimulation()">
+          ⚡ Transmit Packet & Trace Hops
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Counters -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-val" id="metric-rtt">-- ms</div>
+        <div class="metric-label">Round Trip</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" id="metric-requests">0</div>
+        <div class="metric-label">Packets Sent</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" id="metric-clients">1</div>
+        <div class="metric-label">Active Conns</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">⚡</span> Live Server Traffic Stream (SSE)</span>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted);">Real-time server events streamed via persistent HTTP connection:</p>
+      <div class="stream-feed" id="stream-feed">
+        <div class="stream-item">
+          <span>Connected to SSE event stream</span>
+          <span>Now</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: REQUEST INSPECTOR -->
+  <div id="tab-inspector" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">🔍</span> Your Mobile Request Identity</span>
+        <button class="btn btn-outline" style="width: auto; padding: 4px 10px; font-size: 0.75rem;" onclick="loadInspection()">Refresh</button>
+      </div>
+      <div class="info-card">
+        These parameters are decoded by the Node.js server directly from the HTTP headers transmitted by your phone.
+      </div>
+
+      <table class="kv-table">
+        <tr>
+          <td class="kv-key">Client Public IP</td>
+          <td class="kv-value" id="inspect-ip">Detecting...</td>
+        </tr>
+        <tr>
+          <td class="kv-key">Protocol (Client Edge)</td>
+          <td class="kv-value" id="inspect-proto">Detecting...</td>
+        </tr>
+        <tr>
+          <td class="kv-key">HTTP Method</td>
+          <td class="kv-value" id="inspect-method">GET</td>
+        </tr>
+        <tr>
+          <td class="kv-key">HTTP Version</td>
+          <td class="kv-value" id="inspect-http-ver">Detecting...</td>
+        </tr>
+        <tr>
+          <td class="kv-key">Device / Browser</td>
+          <td class="kv-value" id="inspect-device">Detecting...</td>
+        </tr>
+        <tr>
+          <td class="kv-key">Compression Supported</td>
+          <td class="kv-value" id="inspect-compression">Detecting...</td>
+        </tr>
+        <tr>
+          <td class="kv-key">Target Host Header</td>
+          <td class="kv-value" id="inspect-host">Detecting...</td>
+        </tr>
+        <tr>
+          <td class="kv-key">Server Machine Platform</td>
+          <td class="kv-value" id="inspect-platform">Detecting...</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">📜</span> Raw Headers Payload</span>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted);">
+        Every byte sent over TCP in the HTTP Request Header:
+      </p>
+      <div class="code-box" id="raw-headers-box">Loading raw headers...</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: EXPERIMENTS LAB -->
+  <div id="tab-lab" class="tab-content">
+    <!-- Latency & Ping -->
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">⏱️</span> Latency & RTT Benchmarking</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+        Measures total Round-Trip Time (RTT): from Mobile Request -> Air Interface -> Tunnel -> Local PC -> Response back.
+      </p>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val" id="rtt-current">--</div>
+          <div class="metric-label">Current (ms)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="rtt-min">--</div>
+          <div class="metric-label">Min (ms)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="rtt-avg">--</div>
+          <div class="metric-label">Avg (ms)</div>
+        </div>
+      </div>
+      <button class="btn" onclick="measurePing()">Ping Server (Measure RTT)</button>
+    </div>
+
+    <!-- HTTP Status Codes -->
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">🚦</span> HTTP Status Code Explorer</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted);">
+        Tap an HTTP status code to request it and observe how HTTP semantics communicate state:
+      </p>
+
+      <div class="status-btn-group">
+        <button class="status-btn btn-2xx" onclick="testStatus(200)">200 OK</button>
+        <button class="status-btn btn-2xx" onclick="testStatus(201)">201 Created</button>
+        <button class="status-btn btn-2xx" onclick="testStatus(204)">204 No Content</button>
+        <button class="status-btn btn-3xx" onclick="testStatus(301)">301 Redirect</button>
+        <button class="status-btn btn-4xx" onclick="testStatus(400)">400 Bad Req</button>
+        <button class="status-btn btn-4xx" onclick="testStatus(401)">401 Unauth</button>
+        <button class="status-btn btn-4xx" onclick="testStatus(403)">403 Forbidden</button>
+        <button class="status-btn btn-4xx" onclick="testStatus(404)">404 Not Found</button>
+        <button class="status-btn btn-5xx" onclick="testStatus(500)">500 Server Err</button>
+      </div>
+
+      <div class="code-box" id="status-result-box" style="margin-top: 10px; max-height: 120px;">
+        Tap any status code above to test...
+      </div>
+    </div>
+
+    <!-- Artificial Latency & TTFB -->
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">⏳</span> Simulated Server Delay (TTFB)</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted);">
+        Understand how database or backend bottlenecks affect Time-To-First-Byte (TTFB):
+      </p>
+
+      <div class="slider-wrap">
+        <div class="slider-header">
+          <span>Server Execution Pause:</span>
+          <span id="delay-val" style="color: var(--accent); font-weight: 700;">1000 ms</span>
+        </div>
+        <input type="range" id="delay-slider" min="100" max="3000" step="100" value="1000" oninput="document.getElementById('delay-val').innerText = this.value + ' ms'">
+      </div>
+
+      <button class="btn btn-outline" style="margin-top: 10px;" onclick="testDelay()">
+        Test Delayed Execution
+      </button>
+      <div id="delay-result" style="font-size: 0.75rem; color: var(--accent-green); margin-top: 6px; font-family: var(--font-mono);"></div>
+    </div>
+
+    <!-- Payload Size & POST Request -->
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">📦</span> HTTP POST & Body Serialization</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+        Send a structured JSON payload from your mobile device to test TCP segment assembly:
+      </p>
+
+      <input type="text" id="post-input" value="Hello from my mobile browser!" style="width: 100%; background: #0c1322; border: 1px solid var(--card-border); color: #fff; padding: 8px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 8px;">
+      
+      <button class="btn" onclick="sendPostPayload()">Send HTTP POST Payload</button>
+      <div class="code-box" id="post-result-box">Response will appear here...</div>
+    </div>
+  </div>
+
+  <!-- TAB 4: ARCHITECTURE THEORY -->
+  <div id="tab-theory" class="tab-content">
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">🧱</span> The 4-Layer TCP/IP Model</span>
+      </div>
+      <div class="info-card">
+        Every web request travels down this stack on your phone and up this stack on the host PC:
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="background: #0c1322; border-left: 3px solid var(--accent); padding: 8px 10px; border-radius: 6px;">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent);">4. Application Layer (HTTP / HTTPS / DNS)</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Defines format: Headers, URLs, Status Codes, JSON Bodies.</div>
+        </div>
+        <div style="background: #0c1322; border-left: 3px solid var(--accent-green); padding: 8px 10px; border-radius: 6px;">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-green);">3. Transport Layer (TCP / UDP)</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Guarantees reliable ordered packet delivery with 3-Way Handshake (SYN, SYN-ACK, ACK) and flow control.</div>
+        </div>
+        <div style="background: #0c1322; border-left: 3px solid var(--accent-amber); padding: 8px 10px; border-radius: 6px;">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-amber);">2. Internet / Network Layer (IP / ICMP)</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Encapsulates packets into IP datagrams with source & destination IP addresses; routed via BGP across internet backbones.</div>
+        </div>
+        <div style="background: #0c1322; border-left: 3px solid var(--accent-purple); padding: 8px 10px; border-radius: 6px;">
+          <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-purple);">1. Link / Physical Layer (Wi-Fi / 5G / Ethernet)</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Converts bits into radio frequencies (OFDMA / QAM) or optical pulses across physical fiber optic lines.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span><span class="icon">🔄</span> Reverse Tunnel Architecture</span>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;">
+        <strong>How you can reach this local PC from your phone anywhere:</strong><br><br>
+        1. <strong>Outbound Multiplexing:</strong> Residential PCs are protected behind NAT firewalls with private IPs (192.168.x.x). Inbound connections are blocked.<br><br>
+        2. <strong>Reverse SSH Tunnel:</strong> The PC initiates an <em>outbound</em> persistent SSH connection to the cloud tunnel server.<br><br>
+        3. <strong>Edge TLS Termination:</strong> When your phone visits the public HTTPS URL, the cloud proxy accepts the TLS handshake, strips the HTTPS encryption, and forwards the raw HTTP packets through the established SSH pipe directly into Node.js port 3000!
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
+
+      if (tabId === 'inspector') {
+        loadInspection();
+      }
+    }
+
+    // Packet counter state
+    let totalPackets = 0;
+    const rttHistory = [];
+
+    function updateCounters(rtt) {
+      totalPackets++;
+      document.getElementById('metric-requests').innerText = totalPackets;
+      if (rtt !== undefined) {
+        document.getElementById('metric-rtt').innerText = Math.round(rtt) + ' ms';
+        rttHistory.push(rtt);
+        const min = Math.min(...rttHistory);
+        const avg = Math.round(rttHistory.reduce((a, b) => a + b, 0) / rttHistory.length);
+        document.getElementById('rtt-current').innerText = Math.round(rtt);
+        document.getElementById('rtt-min').innerText = Math.round(min);
+        document.getElementById('rtt-avg').innerText = avg;
+      }
+    }
+
+    // Interactive hop simulation
+    async function runHopSimulation() {
+      const btn = document.getElementById('btn-simulate-packet');
+      const status = document.getElementById('flow-status');
+      btn.disabled = true;
+      status.innerText = "Transmitting...";
+      status.style.color = "var(--accent)";
+
+      const hops = [
+        { id: 'hop-client', delay: 150 },
+        { id: 'hop-carrier', delay: 200 },
+        { id: 'hop-tunnel', delay: 180 },
+        { id: 'hop-server', delay: 120 },
+        { id: 'hop-app', delay: 150 }
+      ];
+
+      // Light up hops sequentially
+      document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active-hop'));
+
+      const startTime = performance.now();
+
+      for (const hop of hops) {
+        const el = document.getElementById(hop.id);
+        if (el) el.classList.add('active-hop');
+        await new Promise(r => setTimeout(r, hop.delay));
+        if (el) el.classList.remove('active-hop');
+      }
+
+      // Execute real ping request
+      try {
+        const res = await fetch('/api/ping?t=' + Date.now());
+        const data = await res.json();
+        const duration = performance.now() - startTime;
+        updateCounters(duration);
+        status.innerText = `Ack: 200 OK (${Math.round(duration)}ms)`;
+        status.style.color = "var(--accent-green)";
+        document.getElementById('hop-app').classList.add('active-hop');
+        setTimeout(() => document.getElementById('hop-app').classList.remove('active-hop'), 500);
+      } catch (err) {
+        status.innerText = "Error transmitting";
+        status.style.color = "var(--accent-rose)";
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Ping measurement
+    async function measurePing() {
+      const start = performance.now();
+      try {
+        const res = await fetch('/api/ping?t=' + Date.now(), { cache: 'no-store' });
+        await res.json();
+        const rtt = performance.now() - start;
+        updateCounters(rtt);
+      } catch (e) {
+        alert('Ping failed: ' + e.message);
+      }
+    }
+
+    // Status code testing
+    async function testStatus(code) {
+      const box = document.getElementById('status-result-box');
+      box.innerText = `Sending HTTP request for status ${code}...`;
+      const start = performance.now();
+      try {
+        const res = await fetch('/api/status/' + code);
+        const data = await res.json();
+        const rtt = Math.round(performance.now() - start);
+        updateCounters(rtt);
+        box.innerText = `HTTP/1.1 ${res.status} ${res.statusText}\nLatency: ${rtt}ms\n\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        box.innerText = `Request error: ${err.message}`;
+      }
+    }
+
+    // Delayed request testing
+    async function testDelay() {
+      const delayMs = document.getElementById('delay-slider').value;
+      const resEl = document.getElementById('delay-result');
+      resEl.innerText = `Waiting for server response (simulated ${delayMs}ms pause)...`;
+      const start = performance.now();
+      try {
+        const res = await fetch(`/api/delay?ms=${delayMs}`);
+        const data = await res.json();
+        const elapsed = Math.round(performance.now() - start);
+        updateCounters(elapsed);
+        resEl.innerText = `Total TTFB + Transit: ${elapsed}ms (${data.message})`;
+      } catch (err) {
+        resEl.innerText = `Error: ${err.message}`;
+      }
+    }
+
+    // POST payload test
+    async function sendPostPayload() {
+      const text = document.getElementById('post-input').value;
+      const box = document.getElementById('post-result-box');
+      box.innerText = "Transmitting POST request body...";
+      const start = performance.now();
+      try {
+        const res = await fetch('/api/echo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Client-Timestamp': Date.now().toString()
+          },
+          body: JSON.stringify({ message: text, sentAt: new Date().toISOString() })
+        });
+        const data = await res.json();
+        const elapsed = Math.round(performance.now() - start);
+        updateCounters(elapsed);
+        box.innerText = `Status: ${res.status} OK (${elapsed}ms)\nServer Received:\n` + JSON.stringify(data, null, 2);
+      } catch (err) {
+        box.innerText = 'POST Error: ' + err.message;
+      }
+    }
+
+    // Inspect headers
+    async function loadInspection() {
+      try {
+        const res = await fetch('/api/inspect');
+        const data = await res.json();
+
+        document.getElementById('inspect-ip').innerText = data.client.ip || 'Unknown';
+        document.getElementById('inspect-proto').innerText = (data.client.forwardedProto || 'http').toUpperCase();
+        document.getElementById('inspect-method').innerText = data.connection.method;
+        document.getElementById('inspect-http-ver').innerText = 'HTTP/' + data.connection.httpVersion;
+        
+        // Parse user agent
+        const ua = data.client.userAgent;
+        let osInfo = 'Mobile Device';
+        if (ua.includes('iPhone')) osInfo = 'Apple iPhone (iOS)';
+        else if (ua.includes('Android')) osInfo = 'Android Smartphone';
+        else if (ua.includes('Windows')) osInfo = 'Windows PC';
+        else if (ua.includes('Macintosh')) osInfo = 'Mac OS';
+        
+        document.getElementById('inspect-device').innerText = osInfo;
+        document.getElementById('inspect-compression').innerText = data.client.acceptEncoding || 'None';
+        document.getElementById('inspect-host').innerText = data.connection.headers['host'] || 'localhost';
+        document.getElementById('inspect-platform').innerText = `${data.server.platform} (${data.server.arch})`;
+
+        document.getElementById('raw-headers-box').innerText = JSON.stringify(data.connection.headers, null, 2);
+        document.getElementById('hop-client-detail').innerText = `Device: ${osInfo} (${data.client.ip})`;
+      } catch (e) {
+        console.error('Inspection failed', e);
+      }
+    }
+
+    // Real-time Server-Sent Events (SSE)
+    function setupSSE() {
+      try {
+        const evtSource = new EventSource('/api/stream');
+        
+        evtSource.addEventListener('traffic', (e) => {
+          const item = JSON.parse(e.data);
+          addStreamItem(item);
+        });
+
+        evtSource.addEventListener('heartbeat', (e) => {
+          const data = JSON.parse(e.data);
+          document.getElementById('metric-clients').innerText = data.connectedClients;
+        });
+
+        evtSource.onerror = () => {
+          // Reconnect handled automatically by EventSource
+        };
+      } catch (err) {
+        console.warn('SSE not supported or blocked:', err);
+      }
+    }
+
+    function addStreamItem(item) {
+      const feed = document.getElementById('stream-feed');
+      const div = document.createElement('div');
+      const methodClass = item.statusCode >= 400 ? 'method-err' : (item.method === 'POST' ? 'method-post' : 'method-get');
+      div.className = `stream-item ${methodClass}`;
+      div.innerHTML = `
+        <span><strong>${item.method}</strong> ${item.url.substring(0, 24)} [${item.statusCode}]</span>
+        <span style="opacity: 0.7;">${item.durationMs}ms</span>
+      `;
+      feed.insertBefore(div, feed.firstChild);
+      while (feed.children.length > 8) {
+        feed.removeChild(feed.lastChild);
+      }
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadInspection();
+      setupSSE();
+    });
+  </script>
+</body>
+</html>
