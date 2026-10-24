@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetLab: Network Architecture & Protocol Visualizer | Hobby Projects</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon" title="Network & Protocol Architecture">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="title-row">
+            <h1>NetLab: Network Architecture & Protocol Visualizer</h1>
+            <span class="badge badge-accent">TCP/IP &amp; HTTP</span>
+            <span class="badge badge-green">Zero-Dependency</span>
+          </div>
+          <p class="subtitle">Interactive client-server network visualizer exploring hop-by-hop packet flow, HTTP/TLS inspection, RTT latency, status codes, and reverse tunnels</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="btnQuickPing" class="btn btn-secondary btn-sm" title="Quickly measure round-trip time">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          Quick Ping
+        </button>
+        <button id="btnResetApp" class="btn btn-secondary btn-sm" title="Reset all counters and state">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Reset
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="nav-tab active" data-tab="tab-hop" role="tab">
+        <span>🗺️ Hop-by-Hop Packet Journey</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-protocol" role="tab">
+        <span>🔍 HTTP Protocol &amp; Headers</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-tcp" role="tab">
+        <span>🤝 TCP Handshake &amp; Layers</span>
+      </button>
+      <button class="nav-tab" data-tab="tab-scale" role="tab">
+        <span>📈 1,000+ Users Scale Simulation</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: HOP-BY-HOP PACKET JOURNEY -->
+    <main id="tab-hop" class="tab-panel active">
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val" id="metric-rtt">-- ms</div>
+          <div class="metric-label">Round-Trip Time (RTT)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="metric-packets">0</div>
+          <div class="metric-label">Packets Transmitted</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="metric-hops">7 Hops</div>
+          <div class="metric-label">Network Pipeline</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="metric-protocol">HTTP/1.1</div>
+          <div class="metric-label">Transport Protocol</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>📡 End-to-End Hop Flow</span>
+            <span id="hop-status-text" class="badge badge-accent">Ready</span>
+          </div>
+          <p class="card-desc">
+            Every request travels through seven critical architectural boundaries between your mobile device and the local process:
+          </p>
+
+          <div class="hop-container" id="hop-container">
+            <!-- Dynamic Hops rendered by app.js -->
+          </div>
+
+          <div style="margin-top: 16px;">
+            <button id="btnTransmitPacket" class="btn btn-primary" style="width: 100%;">
+              ⚡ Transmit Packet &amp; Trace Hops
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🔬 Live Telemetry &amp; Hop Inspector</span>
+          </div>
+          <p class="card-desc">Real-time packet inspection as it crosses network boundaries:</p>
+
+          <table class="kv-table">
+            <tr>
+              <td class="kv-key">Active Hop</td>
+              <td class="kv-val" id="tele-hop">None (Idle)</td>
+            </tr>
+            <tr>
+              <td class="kv-key">OSI / TCP Layer</td>
+              <td class="kv-val" id="tele-layer">Application / Transport</td>
+            </tr>
+            <tr>
+              <td class="kv-key">Encryption State</td>
+              <td class="kv-val" id="tele-crypto">TLS 1.3 (Port 443)</td>
+            </tr>
+            <tr>
+              <td class="kv-key">NAT Traversal</td>
+              <td class="kv-val" id="tele-nat">Carrier CGNAT &bull; Reverse SSH Pipe</td>
+            </tr>
+          </table>
+
+          <div class="card-title" style="margin-top: 18px;">
+            <span>📜 Live Wire Transmission Log</span>
+          </div>
+          <div class="code-box" id="wire-log-box">Awaiting packet transmission... Click "Transmit Packet & Trace Hops" to observe the journey.</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 2: HTTP PROTOCOL & HEADERS -->
+    <section id="tab-protocol" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>🚦 Status Code Explorer</span>
+          </div>
+          <p class="card-desc">
+            HTTP status codes inform the client about the outcome of the request. Select any code to inspect the exact headers, category, and architectural meaning:
+          </p>
+
+          <div class="status-grid" id="status-buttons">
+            <!-- Rendered by app.js -->
+          </div>
+
+          <div class="card-title" style="margin-top: 16px;">
+            <span>⏱️ Simulated Server Latency (TTFB)</span>
+          </div>
+          <div class="slider-container">
+            <div class="slider-row">
+              <span>Time-To-First-Byte Delay:</span>
+              <span id="delay-label" style="color: var(--color-accent); font-weight: 700;">800 ms</span>
+            </div>
+            <input type="range" id="delay-slider" min="100" max="3000" step="100" value="800">
+          </div>
+          <button id="btnTestDelay" class="btn btn-secondary" style="width: 100%;">
+            Execute Request with Simulated Delay
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>📋 Raw Wire Frame Inspector</span>
+          </div>
+          <p class="card-desc">Exact HTTP request and response bytes transmitted across the socket:</p>
+
+          <div class="code-box" id="protocol-preview-box" style="max-height: 380px;">Select a status code or send a request to view HTTP frames...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: TCP HANDSHAKE & LAYERS -->
+    <section id="tab-tcp" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>🤝 The TCP 3-Way Handshake</span>
+            <button id="btnStepHandshake" class="btn btn-primary btn-sm">Next Step ▶</button>
+          </div>
+          <p class="card-desc">
+            Before a single byte of HTTP data can transfer, TCP establishes a reliable connection using SYN, SYN-ACK, and ACK packets:
+          </p>
+
+          <div class="handshake-timeline" id="handshake-timeline">
+            <!-- Handshake steps rendered by app.js -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>🧱 The 4-Layer TCP/IP Model</span>
+          </div>
+          <p class="card-desc">
+            How data encapsulates as it descends the network stack:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="background: var(--bg-secondary); border-left: 4px solid var(--color-accent); padding: 10px 14px; border-radius: var(--radius-sm);">
+              <div style="font-weight: 700; color: var(--color-accent); font-size: 0.9rem;">4. Application Layer (HTTP / DNS / TLS)</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Generates HTTP requests, parses HTML/JSON, formats URLs.</div>
+            </div>
+            <div style="background: var(--bg-secondary); border-left: 4px solid var(--color-success); padding: 10px 14px; border-radius: var(--radius-sm);">
+              <div style="font-weight: 700; color: var(--color-success); font-size: 0.9rem;">3. Transport Layer (TCP / UDP)</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Segments data, attaches source/destination ports, ensures in-order delivery and retransmission.</div>
+            </div>
+            <div style="background: var(--bg-secondary); border-left: 4px solid var(--color-warning); padding: 10px 14px; border-radius: var(--radius-sm);">
+              <div style="font-weight: 700; color: var(--color-warning); font-size: 0.9rem;">2. Internet Layer (IP / ICMP)</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Wraps segments into IP datagrams with source &amp; destination IPs; routed via BGP across AS backbones.</div>
+            </div>
+            <div style="background: var(--bg-secondary); border-left: 4px solid var(--color-purple); padding: 10px 14px; border-radius: var(--radius-sm);">
+              <div style="font-weight: 700; color: var(--color-purple); font-size: 0.9rem;">1. Link / Physical Layer (Wi-Fi / 5G / Fiber)</div>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Encodes bits into radio waves (QAM/OFDMA) or optical light pulses across transoceanic undersea cables.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: SCALE & BOTTLENECK SIMULATOR -->
+    <section id="tab-scale" class="tab-panel">
+      <div class="card">
+        <div class="card-title">
+          <span>📈 "What Happens When 1,000+ Users Visit?"</span>
+          <span class="badge badge-accent" id="scale-badge">1,000 Concurrent Users</span>
+        </div>
+        <p class="card-desc">
+          Compare how a single-host reverse tunnel handles a traffic surge vs. a production cloud infrastructure with CDN caching and load balancing:
+        </p>
+
+        <div class="slider-container">
+          <div class="slider-row">
+            <span>Simulated Concurrent Mobile Users:</span>
+            <span id="scale-slider-val" style="color: var(--color-accent); font-weight: 700;">1,000 Users</span>
+          </div>
+          <input type="range" id="scale-slider" min="10" max="10000" step="50" value="1000">
+        </div>
+
+        <div class="grid-2" style="margin-top: 16px;">
+          <!-- Single Host Tunnel Result -->
+          <div style="background: var(--bg-secondary); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: 16px;">
+            <div style="font-weight: 700; color: var(--color-danger); font-size: 1rem; margin-bottom: 8px;">
+              ⚠️ Current Setup: Single-Host Reverse Tunnel
+            </div>
+            <table class="kv-table">
+              <tr>
+                <td class="kv-key">Successful Requests</td>
+                <td class="kv-val" id="single-success" style="color: var(--color-danger);">--</td>
+              </tr>
+              <tr>
+                <td class="kv-key">Dropped / Rejected</td>
+                <td class="kv-val" id="single-dropped" style="color: var(--color-danger);">--</td>
+              </tr>
+              <tr>
+                <td class="kv-key">Average Latency (RTT)</td>
+                <td class="kv-val" id="single-latency" style="color: var(--color-danger);">-- ms</td>
+              </tr>
+              <tr>
+                <td class="kv-key">Error Status Returned</td>
+                <td class="kv-val" id="single-error">502 Bad Gateway / 429</td>
+              </tr>
+              <tr>
+                <td class="kv-key">Primary Bottleneck</td>
+                <td class="kv-val" id="single-bottleneck" style="font-size: 0.75rem;">Tunnel socket cap &amp; TCP head-of-line blocking</td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Production Cloud Result -->
+          <div style="background: var(--bg-secondary); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 16px;">
+            <div style="font-weight: 700; color: var(--color-success); font-size: 1rem; margin-bottom: 8px;">
+              🛡️ Production Setup: Multi-AZ CDN &amp; Auto-Scaling
+            </div>
+            <table class="kv-table">
+              <tr>
+                <td class="kv-key">Successful Requests</td>
+                <td class="kv-val" id="prod-success" style="color: var(--color-success);">--</td>
+              </tr>
+              <tr>
+                <td class="kv-key">CDN Edge Cache Offload</td>
+                <td class="kv-val" id="prod-offload" style="color: var(--color-success);">94% (Zero origin load)</td>
+              </tr>
+              <tr>
+                <td class="kv-key">Edge Latency (RTT)</td>
+                <td class="kv-val" id="prod-latency" style="color: var(--color-success);">-- ms</td>
+              </tr>
+              <tr>
+                <td class="kv-key">Auto-Scaled Containers</td>
+                <td class="kv-val" id="prod-instances">-- Instances</td>
+              </tr>
+              <tr>
+                <td class="kv-key">System Health</td>
+                <td class="kv-val" id="prod-health" style="color: var(--color-success);">100% Healthy</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="network-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

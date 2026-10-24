@@ -15,6 +15,7 @@ Each project is designed to be completely modular and housed in its own independ
 | [**`trigonometry-visualizer/`**](./trigonometry-visualizer/) | **TrigLab: Interactive Trigonometry & Unit Circle Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive visualizer explaining Sine, Cosine, Tangent, Cosecant, Secant, and Cotangent across 0°-360° with dynamic unit circle projections, wave graphs, and geometric proofs. |
 | [**`tensor-matmul-visualizer/`**](./tensor-matmul-visualizer/) | **TensorMatmulLab: NumPy Matmul & Dot Product Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Intuitive interactive visualizer for NumPy matrix multiplication (@ / np.matmul), vector dot products, step-by-step element playback, and batch broadcasting. |
 | [**`softmax-sampling-visualizer/`**](./softmax-sampling-visualizer/) | **SoftmaxLab: Softmax & LLM Sampling Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive visual explorer for Softmax, Temperature scaling, Top-K, and Top-P (nucleus) sampling with live probability distributions and token generation simulation. |
+| [**`network-protocol-visualizer/`**](./network-protocol-visualizer/) | **NetLab: Network Architecture & Protocol Visualizer** | HTML5, CSS3, JavaScript, Python/Docker | Interactive client-server network visualizer exploring hop-by-hop packet flow, HTTP/TLS inspection, RTT latency, status codes, and reverse tunnels. |
 
 ---
 
@@ -76,7 +77,18 @@ hobby_projects/
 │   ├── nginx.conf
 │   └── README.md
 │
-├── [future-app-name]/        # App 6 (Add new apps in separate folders)
+├── network-protocol-visualizer/ # App 6: Network Architecture & Protocol Visualizer
+│   ├── index.html
+│   ├── style.css
+│   ├── network-engine.js
+│   ├── app.js
+│   ├── server.py
+│   ├── test_app.js
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── README.md
+│
+├── [future-app-name]/        # App 7 (Add new apps in separate folders)
 └── ...
 ```
 

@@ -1,0 +1,7 @@
+.git
+.gitignore
+README.md
+server.py
+test_*.js
+*.pyc
+__pycache__
