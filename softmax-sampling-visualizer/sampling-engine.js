@@ -105,6 +105,48 @@
         { token: ' Side', logit: -1.2, note: 'Alternative phrasing' },
         { token: ' Neither', logit: -2.0, note: 'Indeterminate outcome' }
       ]
+    },
+    {
+      id: 'vision-animals',
+      title: 'Computer Vision: Animal Classifier (ImageNet/CIFAR)',
+      badge: 'Multi-Class Image Classification',
+      prompt: 'Classify camera snapshot [Image: Fluffy domestic pet]: Model predicts',
+      description: 'Computer vision model assigns logits across 6 distinct animal classes. Demonstrates how Softmax resolves multi-class competition and outputs calibrated class confidence.',
+      tokens: [
+        { token: ' Cat', logit: 6.8, note: 'Ground truth target class' },
+        { token: ' Dog', logit: 3.9, note: 'Second closest canine' },
+        { token: ' Fox', logit: 2.1, note: 'Wild quadruped' },
+        { token: ' Rabbit', logit: 0.8, note: 'Small mammal' },
+        { token: ' Horse', logit: -1.5, note: 'Large quadruped' },
+        { token: ' Fish', logit: -3.8, note: 'Aquatic vertebrate' }
+      ]
+    },
+    {
+      id: 'sentiment-nlp',
+      title: 'Sentiment Analysis: Review Classifier',
+      badge: 'NLP Multi-Class Classification',
+      prompt: 'Review: "The battery lasts long, but the camera is mediocre and bulky." Predicted Sentiment:',
+      description: 'Sentiment model outputs confidence logits across 5 sentiment categories from Very Positive to Very Negative.',
+      tokens: [
+        { token: ' Neutral / Mixed', logit: 5.4, note: 'Balanced review sentiment' },
+        { token: ' Positive', logit: 3.6, note: 'Mentions good battery' },
+        { token: ' Negative', logit: 3.1, note: 'Mentions mediocre camera' },
+        { token: ' Very Positive', logit: 0.2, note: 'Overly optimistic' },
+        { token: ' Very Negative', logit: -1.8, note: 'Overly pessimistic' }
+      ]
+    },
+    {
+      id: 'extreme-stability',
+      title: 'Numerical Stability Demo: Extreme Logits (~1000)',
+      badge: 'Float Overflow Edge Case',
+      prompt: 'Testing numerical robustness with raw logits in the thousands: [z = 1000]',
+      description: 'Demonstrates why subtracting max(z) is required: without it, exp(1000) causes float overflow (Infinity/Infinity = NaN), while stable Softmax handles it smoothly!',
+      tokens: [
+        { token: ' Class Alpha', logit: 998.0, note: 'Large logit' },
+        { token: ' Class Beta', logit: 999.0, note: 'Large logit' },
+        { token: ' Class Gamma', logit: 1000.0, note: 'Max logit (z = 1000)' },
+        { token: ' Class Delta', logit: 996.0, note: 'Large logit' }
+      ]
     }
   ];
 
